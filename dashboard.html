@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leisurely - Dashboard</title>
+    <link rel="stylesheet" href="./Leisurely.css" />
+</head>
+<body data-page="dashboard">
+    <div id="app">
+        <header class="topbar">
+            <div class="brand"><div class="logo-bubble">L</div><div><h1>Leisurely</h1><p class="tagline">Dashboard</p></div></div>
+            <nav class="nav-links"><a href="./profile.html">Profile</a><a href="./settings.html">Settings</a><a href="./rooms.html">Rooms</a><a href="#" id="logoutBtn">Log Out</a></nav>
+        </header>
+        <section id="status" class="status"></section>
+        <section id="kpis" class="kpis"></section>
+        <section class="grid">
+            <article class="card">
+                <div class="title-row">
+                    <h3>Tasks</h3>
+                    <button id="openTaskModalBtn" type="button">Add Task</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Task</th><th>Date</th><th>Time</th><th>Scope</th><th>Actions</th></tr></thead>
+                        <tbody id="taskRows"></tbody>
+                    </table>
+                </div>
+            </article>
+            <article class="card">
+                <div class="title-row">
+                    <button id="prevMonthBtn" type="button" class="ghost action-btn">◀</button>
+                    <h3 id="calendarTitle">Calendar</h3>
+                    <button id="nextMonthBtn" type="button" class="ghost action-btn">▶</button>
+                </div>
+                <div class="calendar-grid" id="calendar"></div>
+            </article>
+        </section>
+        <section class="card">
+            <div class="title-row">
+                <h3>AI Suggestions</h3>
+                <button id="refreshAiBtn" type="button" class="ghost">Refresh AI Suggestions</button>
+            </div>
+            <ul id="aiList"></ul>
+        </section>
+
+        <div id="taskModal" class="modal hidden">
+            <div class="modal-card">
+                <div class="title-row">
+                    <h3>Add Task</h3>
+                    <button id="closeTaskModalBtn" type="button" class="ghost">Close</button>
+                </div>
+                <form id="taskForm">
+                    <label>Task</label><input required name="title" />
+                    <label>Date</label><input required type="date" name="date" />
+                    <div class="row">
+                        <div><label>Start</label><input required type="time" name="start" /></div>
+                        <div><label>End</label><input required type="time" name="end" /></div>
+                    </div>
+                    <label>Room</label><select name="roomId" id="roomOptions"></select>
+                    <button type="submit">Save Task</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="./Leisurely.app.js"></script>
+</body>
+</html>
