@@ -11,7 +11,7 @@
         :root {
             --primary: #6B8AFF;
             --primary-light: #A3B9FF;
-            --primary-dark: #4A6AE5; 
+            --primary-dark: #4A6AE5;
             --secondary: #FF9A8B;
             --accent: #88D8B0;
             --warning: #FFE66D;
@@ -288,8 +288,12 @@
             min-height: 100vh;
         }
 
-        [data-mobile="true"] .main-layout {
-            grid-template-columns: 1fr;
+        .main-layout.sidebar-hidden {
+            grid-template-columns: 0 1fr;
+        }
+
+        .main-layout.sidebar-hidden .sidebar {
+            display: none;
         }
 
         /* Sidebar */
@@ -305,14 +309,6 @@
             overflow-y: auto;
             z-index: 100;
             transition: transform 0.3s;
-        }
-
-        [data-mobile="true"] .sidebar {
-            transform: translateX(-100%);
-        }
-
-        [data-mobile="true"] .sidebar.open {
-            transform: translateX(0);
         }
 
         .sidebar-logo {
@@ -424,10 +420,39 @@
             margin-left: 260px;
             padding: 24px;
             min-height: 100vh;
+            transition: margin 0.3s;
         }
 
-        [data-mobile="true"] .main-content {
+        .sidebar-hidden .main-content {
             margin-left: 0;
+        }
+
+        /* Toggle Button */
+        .sidebar-toggle-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            width: 44px;
+            height: 44px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 200;
+            transition: left 0.3s, background 0.2s;
+        }
+
+        .sidebar-toggle-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .sidebar-hidden .sidebar-toggle-btn {
+            left: 16px;
         }
 
         .page-header {
@@ -445,20 +470,6 @@
         .header-actions {
             display: flex;
             gap: 12px;
-        }
-
-        .mobile-menu-btn {
-            display: none;
-            padding: 10px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            color: var(--text);
-        }
-
-        [data-mobile="true"] .mobile-menu-btn {
-            display: flex;
         }
 
         /* Cards */
@@ -1357,84 +1368,6 @@
         .toast.error { border-left: 4px solid #FF6B6B; }
         .toast.info { border-left: 4px solid var(--primary); }
 
-        /* Mobile Bottom Nav */
-        .mobile-nav {
-            display: none;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--surface);
-            border-top: 1px solid var(--border);
-            padding: 8px 16px;
-            z-index: 100;
-        }
-
-        [data-mobile="true"] .mobile-nav {
-            display: flex;
-            justify-content: space-around;
-        }
-
-        .mobile-nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            padding: 8px 12px;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 11px;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .mobile-nav-item.active {
-            color: var(--primary);
-        }
-
-        .mobile-nav-item i {
-            width: 24px;
-            height: 24px;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .main-layout {
-                grid-template-columns: 1fr;
-            }
-
-            .main-content {
-                margin-left: 0;
-                padding-bottom: 80px;
-            }
-
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .current-time-card {
-                grid-column: span 1;
-            }
-
-            .profile-header {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .tasks-table {
-                display: block;
-                overflow-x: auto;
-            }
-
-            .calendar-grid {
-                font-size: 12px;
-            }
-
-            .calendar-day {
-                min-height: 60px;
-            }
-        }
-
         /* Animations */
         .fade-in {
             animation: fadeIn 0.3s ease;
@@ -1452,6 +1385,22 @@
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -1486,7 +1435,6 @@
             </form>
             <div class="auth-footer">
                 <p>New here? <a href="#" onclick="showAuth('signup')">Create Account</a></p>
-                <p style="margin-top: 8px;"><a href="#" onclick="showAuth('forgot')">Forgot Password?</a></p>
             </div>
         </div>
     </div>
@@ -1600,7 +1548,7 @@
 
     <!-- Main App -->
     <div id="app" class="app-container">
-        <div class="main-layout">
+        <div class="main-layout" id="mainLayout">
             <!-- Sidebar -->
             <aside class="sidebar" id="sidebar">
                 <div class="sidebar-logo">
@@ -1647,34 +1595,13 @@
             </aside>
 
             <!-- Main Content -->
+            <button class="sidebar-toggle-btn" onclick="toggleSidebar()" id="sidebarToggle" title="Toggle Sidebar">
+                <i data-lucide="menu"></i>
+            </button>
             <main class="main-content" id="mainContent">
                 <!-- Pages will be rendered here -->
             </main>
         </div>
-
-        <!-- Mobile Nav -->
-        <nav class="mobile-nav">
-            <a class="mobile-nav-item active" data-page="home" onclick="navigateTo('home')">
-                <i data-lucide="home"></i>
-                <span>Home</span>
-            </a>
-            <a class="mobile-nav-item" data-page="calendar" onclick="navigateTo('calendar')">
-                <i data-lucide="calendar-days"></i>
-                <span>Calendar</span>
-            </a>
-            <a class="mobile-nav-item" data-page="tasks" onclick="navigateTo('tasks')">
-                <i data-lucide="list-todo"></i>
-                <span>Tasks</span>
-            </a>
-            <a class="mobile-nav-item" data-page="ai" onclick="navigateTo('ai')">
-                <i data-lucide="sparkles"></i>
-                <span>AI</span>
-            </a>
-            <a class="mobile-nav-item" data-page="settings" onclick="navigateTo('settings')">
-                <i data-lucide="settings"></i>
-                <span>More</span>
-            </a>
-        </nav>
     </div>
 
     <!-- Modals -->
@@ -1821,76 +1748,22 @@
             personalization: null,
             currentPage: 'home',
             calendarDate: new Date(),
-            calendarView: 'month'
+            calendarView: 'month',
+            sidebarHidden: false
         };
 
         // Quiz Questions
         const quizQuestions = [
-            {
-                id: 'wakeTime',
-                question: 'What time do you usually wake up?',
-                type: 'select',
-                options: ['Before 6 AM', '6-7 AM', '7-8 AM', '8-9 AM', 'After 9 AM']
-            },
-            {
-                id: 'bedTime',
-                question: 'What time do you usually go to sleep?',
-                type: 'select',
-                options: ['Before 9 PM', '9-10 PM', '10-11 PM', '11 PM - 12 AM', 'After 12 AM']
-            },
-            {
-                id: 'workSchedule',
-                question: 'What best describes your work/study schedule?',
-                type: 'select',
-                options: ['Full-time', 'Part-time', 'Student', 'Self-employed', 'Flexible']
-            },
-            {
-                id: 'exerciseFreq',
-                question: 'How often do you like to exercise?',
-                type: 'select',
-                options: ['Daily', 'Few times a week', 'Weekly', 'Occasionally', 'Never']
-            },
-            {
-                id: 'creative',
-                question: 'How interested are you in creative activities?',
-                type: 'range',
-                min: 'Not interested',
-                max: 'Very interested'
-            },
-            {
-                id: 'social',
-                question: 'How social are you?',
-                type: 'range',
-                min: 'Prefer solitude',
-                max: 'Very social'
-            },
-            {
-                id: 'relaxation',
-                question: 'How much do you value relaxation time?',
-                type: 'range',
-                min: 'Not important',
-                max: 'Very important'
-            },
-            {
-                id: 'learning',
-                question: 'How interested are you in learning new things?',
-                type: 'range',
-                min: 'Not interested',
-                max: 'Very interested'
-            },
-            {
-                id: 'outdoor',
-                question: 'How much do you enjoy outdoor activities?',
-                type: 'range',
-                min: 'Indoor person',
-                max: 'Outdoor lover'
-            },
-            {
-                id: 'favoriteDay',
-                question: "What's your favorite day of the week?",
-                type: 'select',
-                options: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-            }
+            { id: 'wakeTime', question: 'What time do you usually wake up?', type: 'select', options: ['Before 6 AM', '6-7 AM', '7-8 AM', '8-9 AM', 'After 9 AM'] },
+            { id: 'bedTime', question: 'What time do you usually go to sleep?', type: 'select', options: ['Before 9 PM', '9-10 PM', '10-11 PM', '11 PM - 12 AM', 'After 12 AM'] },
+            { id: 'workSchedule', question: 'What best describes your work/study schedule?', type: 'select', options: ['Full-time', 'Part-time', 'Student', 'Self-employed', 'Flexible'] },
+            { id: 'exerciseFreq', question: 'How often do you like to exercise?', type: 'select', options: ['Daily', 'Few times a week', 'Weekly', 'Occasionally', 'Never'] },
+            { id: 'creative', question: 'How interested are you in creative activities?', type: 'range', min: 'Not interested', max: 'Very interested' },
+            { id: 'social', question: 'How social are you?', type: 'range', min: 'Prefer solitude', max: 'Very social' },
+            { id: 'relaxation', question: 'How much do you value relaxation time?', type: 'range', min: 'Not important', max: 'Very important' },
+            { id: 'learning', question: 'How interested are you in learning new things?', type: 'range', min: 'Not interested', max: 'Very interested' },
+            { id: 'outdoor', question: 'How much do you enjoy outdoor activities?', type: 'range', min: 'Indoor person', max: 'Outdoor lover' },
+            { id: 'favoriteDay', question: "What's your favorite day of the week?", type: 'select', options: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] }
         ];
 
         // AI Activity Database
@@ -1923,8 +1796,6 @@
             checkAuth();
             updateIcons();
             setInterval(updateTime, 1000);
-            checkMobile();
-            window.addEventListener('resize', checkMobile);
         }
 
         function loadState() {
@@ -1932,10 +1803,9 @@
             if (saved) {
                 const parsed = JSON.parse(saved);
                 state = { ...state, ...parsed };
-                if (state.calendarDate) {
-                    state.calendarDate = new Date(state.calendarDate);
-                }
+                if (state.calendarDate) state.calendarDate = new Date(state.calendarDate);
             }
+            updateSidebarUI();
         }
 
         function saveState() {
@@ -1945,9 +1815,7 @@
         function checkAuth() {
             if (state.currentUser) {
                 showApp();
-                if (state.settings.showQuiz && !state.personalization) {
-                    showQuiz();
-                }
+                if (state.settings.showQuiz && !state.personalization) showQuiz();
             }
         }
 
@@ -1969,7 +1837,6 @@
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
-
             const user = state.users.find(u => u.email === email && u.password === password);
             if (user) {
                 state.currentUser = user;
@@ -1987,32 +1854,19 @@
             const email = document.getElementById('signupEmail').value;
             const password = document.getElementById('signupPassword').value;
             const confirm = document.getElementById('signupConfirm').value;
-
             if (state.users.find(u => u.email === email)) {
                 showError('signupError', 'Email already registered');
                 return;
             }
-
             if (password !== confirm) {
                 showError('signupError', 'Passwords do not match');
                 return;
             }
-
             if (!validatePassword(password)) {
                 showError('signupError', 'Password must be 8+ chars with 1 number & 1 uppercase');
                 return;
             }
-
-            const user = {
-                id: Date.now(),
-                name,
-                email,
-                password,
-                avatar: null,
-                bio: '',
-                interests: []
-            };
-
+            const user = { id: Date.now(), name, email, password, avatar: null, bio: '', interests: [] };
             state.users.push(user);
             state.currentUser = user;
             saveState();
@@ -2039,7 +1893,6 @@
             if (/\d/.test(password)) score++;
             if (/[A-Z]/.test(password)) score++;
             if (/[^A-Za-z0-9]/.test(password)) score++;
-
             const colors = ['#FF6B6B', '#FF9A8B', '#FFE66D', '#88D8B0', '#6B8AFF'];
             return { percent: score * 20, color: colors[Math.min(score - 1, 4)] || colors[0] };
         }
@@ -2056,16 +1909,8 @@
 
         function sendResetCode() {
             const email = document.getElementById('forgotEmail').value;
-            if (!email) {
-                showError('forgotError', 'Please enter your email');
-                return;
-            }
-
-            if (!state.users.find(u => u.email === email)) {
-                showError('forgotError', 'Email not found');
-                return;
-            }
-
+            if (!email) { showError('forgotError', 'Please enter your email'); return; }
+            if (!state.users.find(u => u.email === email)) { showError('forgotError', 'Email not found'); return; }
             resetEmail = email;
             resetCode = Math.floor(100000 + Math.random() * 900000).toString();
             showToast('Verification code: ' + resetCode + ' (demo)', 'info');
@@ -2076,26 +1921,10 @@
         function resetPassword() {
             const code = document.getElementById('resetCode').value;
             const newPass = document.getElementById('newPassword').value;
-
-            if (code !== resetCode) {
-                showError('resetError', 'Invalid verification code');
-                return;
-            }
-
-            if (!validatePassword(newPass)) {
-                showError('resetError', 'Password must be 8+ chars with 1 number & 1 uppercase');
-                return;
-            }
-
+            if (code !== resetCode) { showError('resetError', 'Invalid verification code'); return; }
+            if (!validatePassword(newPass)) { showError('resetError', 'Password must be 8+ chars with 1 number & 1 uppercase'); return; }
             const user = state.users.find(u => u.email === resetEmail);
-            if (user) {
-                user.password = newPass;
-                saveState();
-                showToast('Password reset successfully! 🔑', 'success');
-                showAuth('login');
-                document.getElementById('forgotStep1').style.display = 'block';
-                document.getElementById('forgotStep2').style.display = 'none';
-            }
+            if (user) { user.password = newPass; saveState(); showToast('Password reset successfully! 🔑', 'success'); showAuth('login'); document.getElementById('forgotStep1').style.display = 'block'; document.getElementById('forgotStep2').style.display = 'none'; }
         }
 
         function logout() {
@@ -2120,41 +1949,23 @@
             const q = quizQuestions[currentQuestion];
             const container = document.getElementById('quizQuestions');
             const progress = document.getElementById('quizProgress');
-
             progress.style.width = ((currentQuestion + 1) / quizQuestions.length * 100) + '%';
-
-            let html = `<div class="quiz-question fade-in">
-                <h3>${q.question}</h3>`;
-
+            let html = `<div class="quiz-question fade-in"><h3>${q.question}</h3>`;
             if (q.type === 'select') {
                 html += '<div class="quiz-options">';
-                q.options.forEach(opt => {
-                    html += `<button class="quiz-option" onclick="selectQuizOption('${opt}')">${opt}</button>`;
-                });
+                q.options.forEach(opt => { html += `<button class="quiz-option" onclick="selectQuizOption('${opt}')">${opt}</button>`; });
                 html += '</div>';
             } else if (q.type === 'range') {
-                html += `<div class="quiz-range">
-                    <input type="range" min="1" max="5" value="3" id="quizRange" onchange="selectQuizOption(this.value)">
-                    <div class="range-labels">
-                        <span>${q.min}</span>
-                        <span>${q.max}</span>
-                    </div>
-                </div>`;
+                html += `<div class="quiz-range"><input type="range" min="1" max="5" value="3" id="quizRange" onchange="selectQuizOption(this.value)"><div class="range-labels"><span>${q.min}</span><span>${q.max}</span></div></div>`;
             }
-
             html += '</div>';
             container.innerHTML = html;
         }
 
         function selectQuizOption(value) {
             quizAnswers[quizQuestions[currentQuestion].id] = value;
-
-            if (currentQuestion < quizQuestions.length - 1) {
-                currentQuestion++;
-                renderQuizQuestion();
-            } else {
-                finishQuiz();
-            }
+            if (currentQuestion < quizQuestions.length - 1) { currentQuestion++; renderQuizQuestion(); }
+            else { finishQuiz(); }
         }
 
         function finishQuiz() {
@@ -2176,15 +1987,13 @@
         // Navigation
         function navigateTo(page) {
             state.currentPage = page;
-            document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(item => {
+            document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
                 if (item.dataset.page === page) item.classList.add('active');
             });
-
             const main = document.getElementById('mainContent');
             main.innerHTML = getPageContent(page);
             updateIcons();
-
             if (page === 'calendar') renderCalendar();
             if (page === 'tasks') renderTasks();
             if (page === 'home') renderHome();
@@ -2193,31 +2002,37 @@
             if (page === 'friends') renderFriends();
             if (page === 'profile') renderProfile();
             if (page === 'settings') renderSettings();
-
-            // Close mobile sidebar
             document.getElementById('sidebar').classList.remove('open');
         }
 
         function getPageContent(page) {
             switch(page) {
-                case 'home':
-                    return getHomePage();
-                case 'calendar':
-                    return getCalendarPage();
-                case 'tasks':
-                    return getTasksPage();
-                case 'ai':
-                    return getAIPage();
-                case 'rooms':
-                    return getRoomsPage();
-                case 'friends':
-                    return getFriendsPage();
-                case 'profile':
-                    return getProfilePage();
-                case 'settings':
-                    return getSettingsPage();
-                default:
-                    return getHomePage();
+                case 'home': return getHomePage();
+                case 'calendar': return getCalendarPage();
+                case 'tasks': return getTasksPage();
+                case 'ai': return getAIPage();
+                case 'rooms': return getRoomsPage();
+                case 'friends': return getFriendsPage();
+                case 'profile': return getProfilePage();
+                case 'settings': return getSettingsPage();
+                default: return getHomePage();
+            }
+        }
+
+        // Sidebar Toggle
+        function toggleSidebar() {
+            const layout = document.getElementById('mainLayout');
+            state.sidebarHidden = !state.sidebarHidden;
+            saveState();
+            updateSidebarUI();
+        }
+
+        function updateSidebarUI() {
+            const layout = document.getElementById('mainLayout');
+            if (state.sidebarHidden) {
+                layout.classList.add('sidebar-hidden');
+            } else {
+                layout.classList.remove('sidebar-hidden');
             }
         }
 
@@ -2226,905 +2041,162 @@
             const now = new Date();
             const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
             const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-            const currentTask = state.tasks.find(t => {
-                if (t.status === 'done') return false;
-                const taskDate = new Date(t.date);
-                return taskDate.toDateString() === now.toDateString();
-            });
-
+            const currentTask = state.tasks.find(t => { if (t.status === 'done') return false; const taskDate = new Date(t.date); return taskDate.toDateString() === now.toDateString(); });
             return `
                 <div class="page-header">
                     <div>
                         <h2>Welcome back, ${state.currentUser?.name || 'Friend'}! 👋</h2>
                         <p style="color: var(--text-muted); margin-top: 4px;">Here's your day at a glance</p>
                     </div>
-                    <button class="btn btn-primary" onclick="openModal('taskModal')">
-                        <i data-lucide="plus"></i> Add Task
-                    </button>
+                    <button class="btn btn-primary" onclick="openModal('taskModal')"><i data-lucide="plus"></i> Add Task</button>
                 </div>
-
                 <div class="dashboard-grid">
                     <div class="current-time-card slide-up">
                         <div class="current-time">${timeStr}</div>
                         <div class="current-date">${dateStr}</div>
-                        ${currentTask ? `
-                            <div class="current-activity">
-                                <h4>Currently Working On</h4>
-                                <p>${currentTask.title}</p>
-                            </div>
-                        ` : ''}
+                        ${currentTask ? `<div class="current-activity"><h4>Currently Working On</h4><p>${currentTask.title}</p></div>` : ''}
                     </div>
-
                     <div class="card slide-up" style="animation-delay: 0.1s;">
-                        <div class="card-header">
-                            <h3>Today's Tasks</h3>
-                            <button class="btn btn-ghost" onclick="navigateTo('tasks')">View All →</button>
-                        </div>
+                        <div class="card-header"><h3>Today's Tasks</h3><button class="btn btn-ghost" onclick="navigateTo('tasks')">View All →</button></div>
                         ${getTodaysTasksHTML()}
                     </div>
-
                     <div class="card slide-up" style="animation-delay: 0.2s;">
-                        <div class="card-header">
-                            <h3>🎯 AI Suggestions</h3>
-                            <button class="btn btn-ghost" onclick="navigateTo('ai')">See More →</button>
-                        </div>
-                        <div class="ai-suggestions">
-                            ${getAISuggestionsHTML(3)}
-                        </div>
+                        <div class="card-header"><h3>🎯 AI Suggestions</h3><button class="btn btn-ghost" onclick="navigateTo('ai')">See More →</button></div>
+                        <div class="ai-suggestions">${getAISuggestionsHTML(3)}</div>
                     </div>
-                </div>
-            `;
+                </div>`;
         }
 
         function getTodaysTasksHTML() {
-            const today = new Date().toDateString();
-            const todaysTasks = state.tasks.filter(t => new Date(t.date).toDateString() === today);
-
-            if (todaysTasks.length === 0) {
-                return '<p style="color: var(--text-muted); text-align: center; padding: 20px;">No tasks for today! 🎉</p>';
-            }
-
-            return todaysTasks.slice(0, 4).map(task => `
-                <div style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border);">
-                    <div class="task-color" style="background: ${task.color};"></div>
-                    <div style="flex: 1;">
-                        <strong>${task.title}</strong>
-                        <p style="font-size: 12px; color: var(--text-muted);">${task.start || ''} - ${task.end || ''}</p>
-                    </div>
-                    <span class="status-badge status-${task.status}">${task.status}</span>
-                </div>
-            `).join('');
+            const todaysTasks = state.tasks.filter(t => new Date(t.date).toDateString() === new Date().toDateString());
+            if (todaysTasks.length === 0) return '<p style="color: var(--text-muted); text-align: center; padding: 20px;">No tasks for today! 🎉</p>';
+            return todaysTasks.slice(0, 4).map(task => `<div style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border);"><div class="task-color" style="background: ${task.color};"></div><div style="flex: 1;"><strong>${task.title}</strong><p style="font-size: 12px; color: var(--text-muted);">${task.start || ''} - ${task.end || ''}</p></div><span class="status-badge status-${task.status}">${task.status}</span></div>`).join('');
         }
 
         function getAISuggestionsHTML(count) {
-            const suggestions = generateAISuggestions().slice(0, count);
-            return suggestions.map(s => `
-                <div class="ai-suggestion-card" onclick="addAISuggestionToTask('${s.name}', ${s.duration})">
-                    <div class="ai-suggestion-icon" style="background: ${getCategoryColor(s.category)}20; color: ${getCategoryColor(s.category)};">
-                        ${s.icon}
-                    </div>
-                    <h4>${s.name}</h4>
-                    <div class="ai-suggestion-meta">
-                        <span>${s.duration} min</span>
-                        <span class="match-badge">${s.match}% match</span>
-                    </div>
-                </div>
-            `).join('');
+            return generateAISuggestions().slice(0, count).map(s => `<div class="ai-suggestion-card" onclick="addAISuggestionToTask('${s.name}', ${s.duration})"><div class="ai-suggestion-icon" style="background: ${getCategoryColor(s.category)}20; color: ${getCategoryColor(s.category)};">${s.icon}</div><h4>${s.name}</h4><div class="ai-suggestion-meta"><span>${s.duration} min</span><span class="match-badge">${s.match}% match</span></div></div>`).join('');
         }
 
         function generateAISuggestions() {
-            const freeTimeSlots = findFreeTimeSlots();
             const suggestions = [];
-
             activities.forEach(activity => {
                 let match = 50;
                 const p = state.personalization;
-
                 if (p) {
-                    if (activity.category === 'physical' && p.exerciseFreq) {
-                        const exerciseScores = { 'Daily': 100, 'Few times a week': 80, 'Weekly': 60, 'Occasionally': 30, 'Never': 10 };
-                        match += (exerciseScores[p.exerciseFreq] || 50) - 50;
-                    }
-                    if (activity.category === 'creative' && p.creative) {
-                        match += (parseInt(p.creative) - 3) * 15;
-                    }
-                    if (activity.category === 'social' && p.social) {
-                        match += (parseInt(p.social) - 3) * 15;
-                    }
-                    if (activity.category === 'outdoor' && p.outdoor) {
-                        match += (parseInt(p.outdoor) - 3) * 15;
-                    }
-                    if (activity.category === 'relaxing' && p.relaxation) {
-                        match += (parseInt(p.relaxation) - 3) * 15;
-                    }
-                    if (activity.category === 'productive' && p.learning) {
-                        match += (parseInt(p.learning) - 3) * 10;
-                    }
+                    if (activity.category === 'physical' && p.exerciseFreq) { const exerciseScores = { 'Daily': 100, 'Few times a week': 80, 'Weekly': 60, 'Occasionally': 30, 'Never': 10 }; match += (exerciseScores[p.exerciseFreq] || 50) - 50; }
+                    if (activity.category === 'creative' && p.creative) match += (parseInt(p.creative) - 3) * 15;
+                    if (activity.category === 'social' && p.social) match += (parseInt(p.social) - 3) * 15;
+                    if (activity.category === 'outdoor' && p.outdoor) match += (parseInt(p.outdoor) - 3) * 15;
+                    if (activity.category === 'relaxing' && p.relaxation) match += (parseInt(p.relaxation) - 3) * 15;
                 }
-
                 match = Math.min(100, Math.max(20, match));
-
                 suggestions.push({ ...activity, match: Math.round(match) });
             });
-
             return suggestions.sort((a, b) => b.match - a.match);
-        }
-
-        function findFreeTimeSlots() {
-            const today = new Date().toDateString();
-            const todaysTasks = state.tasks.filter(t =>
-                new Date(t.date).toDateString() === today && t.start && t.end
-            );
-
-            const slots = [];
-            let lastEnd = 8 * 60;
-
-            todaysTasks.sort((a, b) => (a.start || '').localeCompare(b.start || ''));
-
-            todaysTasks.forEach(task => {
-                const [h, m] = (task.start || '0:0').split(':').map(Number);
-                const taskStart = h * 60 + m;
-                if (taskStart > lastEnd) {
-                    slots.push({ start: lastEnd, end: taskStart });
-                }
-                const [eh, em] = (task.end || '0:0').split(':').map(Number);
-                lastEnd = eh * 60 + em;
-            });
-
-            const [bedH, bedM] = (state.personalization?.bedTime || '11:00 PM').replace(' PM', '').replace(' AM', '').split(':');
-            const dayEnd = bedH ? parseInt(bedH) * 60 + (bedM || 0) : 22 * 60;
-            if (dayEnd > lastEnd) {
-                slots.push({ start: lastEnd, end: dayEnd });
-            }
-
-            return slots;
         }
 
         function addAISuggestionToTask(name, duration) {
             const now = new Date();
             const startHour = now.getHours() + 1;
-            const startTime = `${startHour.toString().padStart(2, '0')}:00`;
-            const endHour = startHour + Math.ceil(duration / 60);
-            const endTime = `${endHour.toString().padStart(2, '0')}:00`;
-
-            const task = {
-                id: Date.now(),
-                title: name,
-                description: 'AI suggested activity',
-                date: now.toISOString().split('T')[0],
-                start: startTime,
-                end: endTime,
-                priority: 'medium',
-                status: 'todo',
-                color: state.settings.primaryColor,
-                userId: state.currentUser?.id
-            };
-
+            const task = { id: Date.now(), title: name, description: 'AI suggested activity', date: now.toISOString().split('T')[0], start: `${startHour.toString().padStart(2, '0')}:00`, end: `${(startHour + Math.ceil(duration / 60)).toString().padStart(2, '0')}:00`, priority: 'medium', status: 'todo', color: state.settings.primaryColor, userId: state.currentUser?.id };
             state.tasks.push(task);
             saveState();
             showToast('Added "' + name + '" to your tasks! ✨', 'success');
             navigateTo('tasks');
         }
 
-        function getCategoryColor(category) {
-            const colors = {
-                creative: '#FF9A8B',
-                physical: '#88D8B0',
-                social: '#6B8AFF',
-                relaxing: '#B19CD9',
-                productive: '#FFE66D',
-                outdoor: '#87CEEB'
-            };
-            return colors[category] || '#6B8AFF';
-        }
+        function getCategoryColor(category) { const colors = { creative: '#FF9A8B', physical: '#88D8B0', social: '#6B8AFF', relaxing: '#B19CD9', productive: '#FFE66D', outdoor: '#87CEEB' }; return colors[category] || '#6B8AFF'; }
 
         // Calendar Page
-        function getCalendarPage() {
-            return `
-                <div class="page-header">
-                    <h2>Calendar 📅</h2>
-                    <button class="btn btn-primary" onclick="openModal('taskModal')">
-                        <i data-lucide="plus"></i> Add Event
-                    </button>
-                </div>
-                <div class="card">
-                    <div class="calendar-header">
-                        <div class="calendar-nav">
-                            <button onclick="changeCalendarMonth(-1)"><i data-lucide="chevron-left"></i></button>
-                            <span class="calendar-title" id="calendarTitle"></span>
-                            <button onclick="changeCalendarMonth(1)"><i data-lucide="chevron-right"></i></button>
-                        </div>
-                        <div class="calendar-views">
-                            <button class="view-btn ${state.calendarView === 'month' ? 'active' : ''}" onclick="setCalendarView('month')">Month</button>
-                            <button class="view-btn ${state.calendarView === 'week' ? 'active' : ''}" onclick="setCalendarView('week')">Week</button>
-                        </div>
-                    </div>
-                    <div class="calendar-grid" id="calendarGrid"></div>
-                </div>
-            `;
-        }
+        function getCalendarPage() { return `<div class="page-header"><h2>Calendar 📅</h2><button class="btn btn-primary" onclick="openModal('taskModal')"><i data-lucide="plus"></i> Add Event</button></div><div class="card"><div class="calendar-header"><div class="calendar-nav"><button onclick="changeCalendarMonth(-1)"><i data-lucide="chevron-left"></i></button><span class="calendar-title" id="calendarTitle"></span><button onclick="changeCalendarMonth(1)"><i data-lucide="chevron-right"></i></button></div><div class="calendar-views"><button class="view-btn ${state.calendarView === 'month' ? 'active' : ''}" onclick="setCalendarView('month')">Month</button><button class="view-btn ${state.calendarView === 'week' ? 'active' : ''}" onclick="setCalendarView('week')">Week</button></div></div><div class="calendar-grid" id="calendarGrid"></div></div>`; }
 
         function renderCalendar() {
             const title = document.getElementById('calendarTitle');
             const grid = document.getElementById('calendarGrid');
-
-            const months = ['January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December'];
-
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
             title.textContent = months[state.calendarDate.getMonth()] + ' ' + state.calendarDate.getFullYear();
-
             const firstDay = new Date(state.calendarDate.getFullYear(), state.calendarDate.getMonth(), 1);
             const lastDay = new Date(state.calendarDate.getFullYear(), state.calendarDate.getMonth() + 1, 0);
             const startDay = firstDay.getDay();
             const daysInMonth = lastDay.getDate();
-
             const today = new Date();
-
             let html = '';
             const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            dayNames.forEach(d => {
-                html += `<div class="calendar-day-header">${d}</div>`;
-            });
-
-            // Previous month days
+            dayNames.forEach(d => { html += `<div class="calendar-day-header">${d}</div>`; });
             const prevMonth = new Date(state.calendarDate.getFullYear(), state.calendarDate.getMonth(), 0);
-            for (let i = startDay - 1; i >= 0; i--) {
-                html += `<div class="calendar-day other-month"><div class="calendar-day-number">${prevMonth.getDate() - i}</div></div>`;
-            }
-
-            // Current month days
+            for (let i = startDay - 1; i >= 0; i--) { html += `<div class="calendar-day other-month"><div class="calendar-day-number">${prevMonth.getDate() - i}</div></div>`; }
             for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(state.calendarDate.getFullYear(), state.calendarDate.getMonth(), day);
                 const isToday = date.toDateString() === today.toDateString();
                 const dateStr = date.toISOString().split('T')[0];
                 const dayTasks = state.tasks.filter(t => t.date === dateStr);
-
-                html += `
-                    <div class="calendar-day ${isToday ? 'today' : ''}" onclick="openTaskModalForDate('${dateStr}')">
-                        <div class="calendar-day-number">${day}</div>
-                        ${dayTasks.slice(0, 3).map(t => `
-                            <div class="calendar-event" style="background: ${t.color}20; color: ${t.color}; border-left: 3px solid ${t.color};" onclick="event.stopPropagation(); editTask(${t.id})">
-                                ${t.title}
-                            </div>
-                        `).join('')}
-                        ${dayTasks.length > 3 ? `<div style="font-size: 10px; color: var(--text-muted);">+${dayTasks.length - 3} more</div>` : ''}
-                    </div>
-                `;
+                html += `<div class="calendar-day ${isToday ? 'today' : ''}" onclick="openTaskModalForDate('${dateStr}')"><div class="calendar-day-number">${day}</div>${dayTasks.slice(0, 3).map(t => `<div class="calendar-event" style="background: ${t.color}20; color: ${t.color}; border-left: 3px solid ${t.color};" onclick="event.stopPropagation(); editTask(${t.id})">${t.title}</div>`).join('')}${dayTasks.length > 3 ? `<div style="font-size: 10px; color: var(--text-muted);">+${dayTasks.length - 3} more</div>` : ''}</div>`;
             }
-
-            // Next month days
             const remaining = 42 - (startDay + daysInMonth);
-            for (let i = 1; i <= remaining; i++) {
-                html += `<div class="calendar-day other-month"><div class="calendar-day-number">${i}</div></div>`;
-            }
-
+            for (let i = 1; i <= remaining; i++) { html += `<div class="calendar-day other-month"><div class="calendar-day-number">${i}</div></div>`; }
             grid.innerHTML = html;
             updateIcons();
         }
 
-        function changeCalendarMonth(delta) {
-            state.calendarDate.setMonth(state.calendarDate.getMonth() + delta);
-            renderCalendar();
-        }
-
-        function setCalendarView(view) {
-            state.calendarView = view;
-            renderCalendar();
-        }
+        function changeCalendarMonth(delta) { state.calendarDate.setMonth(state.calendarDate.getMonth() + delta); renderCalendar(); }
+        function setCalendarView(view) { state.calendarView = view; renderCalendar(); }
 
         // Tasks Page
-        function getTasksPage() {
-            return `
-                <div class="page-header">
-                    <h2>Tasks 📝</h2>
-                    <button class="btn btn-primary" onclick="openModal('taskModal')">
-                        <i data-lucide="plus"></i> Add Task
-                    </button>
-                </div>
-                <div class="card">
-                    <div class="tasks-toolbar">
-                        <input type="text" class="search-input" placeholder="Search tasks..." id="taskSearch" oninput="filterTasks()">
-                        <select class="filter-select" id="taskFilterStatus" onchange="filterTasks()">
-                            <option value="">All Status</option>
-                            <option value="todo">To Do</option>
-                            <option value="progress">In Progress</option>
-                            <option value="done">Done</option>
-                        </select>
-                        <select class="filter-select" id="taskFilterPriority" onchange="filterTasks()">
-                            <option value="">All Priority</option>
-                            <option value="high">High</option>
-                            <option value="medium">Medium</option>
-                            <option value="low">Low</option>
-                        </select>
-                    </div>
-                    <table class="tasks-table">
-                        <thead>
-                            <tr>
-                                <th>Task</th>
-                                <th>Date</th>
-                                <th>Time</th>
-                                <th>Priority</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tasksTableBody">
-                            ${getTasksTableHTML()}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-        }
+        function getTasksPage() { return `<div class="page-header"><h2>Tasks 📝</h2><button class="btn btn-primary" onclick="openModal('taskModal')"><i data-lucide="plus"></i> Add Task</button></div><div class="card"><div class="tasks-toolbar"><input type="text" class="search-input" placeholder="Search tasks..." id="taskSearch" oninput="filterTasks()"><select class="filter-select" id="taskFilterStatus" onchange="filterTasks()"><option value="">All Status</option><option value="todo">To Do</option><option value="progress">In Progress</option><option value="done">Done</option></select><select class="filter-select" id="taskFilterPriority" onchange="filterTasks()"><option value="">All Priority</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></div><table class="tasks-table"><thead><tr><th>Task</th><th>Date</th><th>Time</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead><tbody id="tasksTableBody">${getTasksTableHTML()}</tbody></table></div>`; }
 
         function getTasksTableHTML() {
             const search = document.getElementById('taskSearch')?.value?.toLowerCase() || '';
             const statusFilter = document.getElementById('taskFilterStatus')?.value || '';
             const priorityFilter = document.getElementById('taskFilterPriority')?.value || '';
-
-            let tasks = state.tasks.filter(t => {
-                if (t.title?.toLowerCase().includes(search)) return false;
-                if (statusFilter && t.status !== statusFilter) return false;
-                if (priorityFilter && t.priority !== priorityFilter) return false;
-                return true;
-            });
-
+            let tasks = state.tasks.filter(t => { if (t.title?.toLowerCase().includes(search)) return false; if (statusFilter && t.status !== statusFilter) return false; if (priorityFilter && t.priority !== priorityFilter) return false; return true; });
             tasks.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-            if (tasks.length === 0) {
-                return '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">No tasks found ✨</td></tr>';
-            }
-
-            return tasks.map(task => `
-                <tr>
-                    <td>
-                        <div class="task-title">
-                            <div class="task-color" style="background: ${task.color};"></div>
-                            ${task.title}
-                        </div>
-                    </td>
-                    <td>${new Date(task.date).toLocaleDateString()}</td>
-                    <td>${task.start || '-'} - ${task.end || '-'}</td>
-                    <td><span class="priority-badge priority-${task.priority}">${task.priority}</span></td>
-                    <td><span class="status-badge status-${task.status}">${task.status === 'todo' ? 'To Do' : task.status === 'progress' ? 'In Progress' : 'Done'}</span></td>
-                    <td>
-                        <div class="action-btns">
-                            <button class="action-btn" onclick="editTask(${task.id})" title="Edit"><i data-lucide="edit-2"></i></button>
-                            <button class="action-btn delete" onclick="deleteTask(${task.id})" title="Delete"><i data-lucide="trash-2"></i></button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
+            if (tasks.length === 0) return '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">No tasks found ✨</td></tr>';
+            return tasks.map(task => `<tr><td><div class="task-title"><div class="task-color" style="background: ${task.color};"></div>${task.title}</div></td><td>${new Date(task.date).toLocaleDateString()}</td><td>${task.start || '-'} - ${task.end || '-'}</td><td><span class="priority-badge priority-${task.priority}">${task.priority}</span></td><td><span class="status-badge status-${task.status}">${task.status === 'todo' ? 'To Do' : task.status === 'progress' ? 'In Progress' : 'Done'}</span></td><td><div class="action-btns"><button class="action-btn" onclick="editTask(${task.id})" title="Edit"><i data-lucide="edit-2"></i></button><button class="action-btn delete" onclick="deleteTask(${task.id})" title="Delete"><i data-lucide="trash-2"></i></button></div></td></tr>`).join('');
         }
 
-        function filterTasks() {
-            const tbody = document.getElementById('tasksTableBody');
-            if (tbody) {
-                tbody.innerHTML = getTasksTableHTML();
-                updateIcons();
-            }
-        }
+        function filterTasks() { const tbody = document.getElementById('tasksTableBody'); if (tbody) { tbody.innerHTML = getTasksTableHTML(); updateIcons(); } }
 
         // AI Page
-        function getAIPage() {
-            return `
-                <div class="page-header">
-                    <div>
-                        <h2>AI Suggestions 🤖</h2>
-                        <p style="color: var(--text-muted); margin-top: 4px;">Personalized activities based on your schedule and interests</p>
-                    </div>
-                    <button class="btn btn-primary" onclick="refreshAISuggestions()">
-                        <i data-lucide="refresh-cw"></i> Refresh
-                    </button>
-                </div>
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Recommended Activities</h3>
-                    </div>
-                    <div class="ai-suggestions" style="flex-direction: column;">
-                        ${generateAISuggestions().map(s => `
-                            <div class="ai-suggestion-card" style="min-width: auto; display: flex; align-items: center; gap: 16px;" onclick="addAISuggestionToTask('${s.name}', ${s.duration})">
-                                <div class="ai-suggestion-icon" style="background: ${getCategoryColor(s.category)}20; color: ${getCategoryColor(s.category)}; width: 56px; height: 56px; font-size: 28px;">
-                                    ${s.icon}
-                                </div>
-                                <div style="flex: 1;">
-                                    <h4>${s.name}</h4>
-                                    <p style="font-size: 13px; color: var(--text-muted);">${s.category} • ${s.duration} minutes</p>
-                                </div>
-                                <span class="match-badge" style="font-size: 14px; padding: 8px 16px;">${s.match}% Match</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        function refreshAISuggestions() {
-            navigateTo('ai');
-            showToast('Suggestions refreshed! 🔄', 'info');
-        }
+        function getAIPage() { return `<div class="page-header"><div><h2>AI Suggestions 🤖</h2><p style="color: var(--text-muted); margin-top: 4px;">Personalized activities based on your schedule and interests</p></div><button class="btn btn-primary" onclick="refreshAISuggestions()"><i data-lucide="refresh-cw"></i> Refresh</button></div><div class="card"><div class="card-header"><h3>Recommended Activities</h3></div><div class="ai-suggestions" style="flex-direction: column;">${generateAISuggestions().map(s => `<div class="ai-suggestion-card" style="min-width: auto; display: flex; align-items: center; gap: 16px;" onclick="addAISuggestionToTask('${s.name}', ${s.duration})"><div class="ai-suggestion-icon" style="background: ${getCategoryColor(s.category)}20; color: ${getCategoryColor(s.category)}; width: 56px; height: 56px; font-size: 28px;">${s.icon}</div><div style="flex: 1;"><h4>${s.name}</h4><p style="font-size: 13px; color: var(--text-muted);">${s.category} • ${s.duration} minutes</p></div><span class="match-badge" style="font-size: 14px; padding: 8px 16px;">${s.match}% Match</span></div>`).join('')}</div></div>`; }
+        function refreshAISuggestions() { navigateTo('ai'); showToast('Suggestions refreshed! 🔄', 'info'); }
 
         // Rooms Page
-        function getRoomsPage() {
-            return `
-                <div class="page-header">
-                    <div>
-                        <h2>Rooms 👥</h2>
-                        <p style="color: var(--text-muted); margin-top: 4px;">Collaborate on schedules with friends</p>
-                    </div>
-                    <button class="btn btn-primary" onclick="openModal('roomModal')">
-                        <i data-lucide="plus"></i> Create Room
-                    </button>
-                </div>
-                <div class="rooms-grid">
-                    ${state.rooms.length === 0 ? `
-                        <div class="card" style="grid-column: span 3; text-align: center; padding: 60px;">
-                            <div style="font-size: 48px; margin-bottom: 16px;">🏠</div>
-                            <h3>No Rooms Yet</h3>
-                            <p style="color: var(--text-muted); margin: 12px 0;">Create a room to collaborate on schedules with friends!</p>
-                            <button class="btn btn-primary" onclick="openModal('roomModal')" style="margin-top: 16px;">Create Your First Room</button>
-                        </div>
-                    ` : state.rooms.map(room => `
-                        <div class="room-card slide-up">
-                            <div class="room-header">
-                                <div class="room-icon">🏠</div>
-                                <span class="room-badge">${room.members?.length || 1} members</span>
-                            </div>
-                            <h4>${room.name}</h4>
-                            <p>${room.description || 'No description'}</p>
-                            <div class="room-members">
-                                <div class="member-avatars">
-                                    ${(room.members || [state.currentUser]).slice(0, 3).map(m => `
-                                        <div class="member-avatar">${(m.name || 'U')[0]}</div>
-                                    `).join('')}
-                                </div>
-                                <span class="member-count">${room.members?.length || 1} members</span>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        function createRoom() {
-            const name = document.getElementById('roomName').value;
-            const description = document.getElementById('roomDesc').value;
-
-            if (!name) {
-                showToast('Please enter a room name', 'error');
-                return;
-            }
-
-            const room = {
-                id: Date.now(),
-                name,
-                description,
-                members: [state.currentUser],
-                createdAt: new Date().toISOString()
-            };
-
-            state.rooms.push(room);
-            saveState();
-            closeModal('roomModal');
-            navigateTo('rooms');
-            showToast('Room created! 🎉', 'success');
-        }
+        function getRoomsPage() { return `<div class="page-header"><div><h2>Rooms 👥</h2><p style="color: var(--text-muted); margin-top: 4px;">Collaborate on schedules with friends</p></div><button class="btn btn-primary" onclick="openModal('roomModal')"><i data-lucide="plus"></i> Create Room</button></div><div class="rooms-grid">${state.rooms.length === 0 ? `<div class="card" style="grid-column: span 3; text-align: center; padding: 60px;"><div style="font-size: 48px; margin-bottom: 16px;">🏠</div><h3>No Rooms Yet</h3><p style="color: var(--text-muted); margin: 12px 0;">Create a room to collaborate on schedules with friends!</p><button class="btn btn-primary" onclick="openModal('roomModal')" style="margin-top: 16px;">Create Your First Room</button></div>` : state.rooms.map(room => `<div class="room-card slide-up"><div class="room-header"><div class="room-icon">🏠</div><span class="room-badge">${room.members?.length || 1} members</span></div><h4>${room.name}</h4><p>${room.description || 'No description'}</p><div class="room-members"><div class="member-avatars">${(room.members || [state.currentUser]).slice(0, 3).map(m => `<div class="member-avatar">${(m.name || 'U')[0]}</div>`).join('')}</div><span class="member-count">${room.members?.length || 1} members</span></div></div>`).join('')}</div>`; }
+        function createRoom() { const name = document.getElementById('roomName').value; const description = document.getElementById('roomDesc').value; if (!name) { showToast('Please enter a room name', 'error'); return; } const room = { id: Date.now(), name, description, members: [state.currentUser], createdAt: new Date().toISOString() }; state.rooms.push(room); saveState(); closeModal('roomModal'); navigateTo('rooms'); showToast('Room created! 🎉', 'success'); }
 
         // Friends Page
-        function getFriendsPage() {
-            return `
-                <div class="page-header">
-                    <div>
-                        <h2>Friends 👫</h2>
-                        <p style="color: var(--text-muted); margin-top: 4px;">Manage your social connections</p>
-                    </div>
-                    <button class="btn btn-primary" onclick="openModal('friendModal')">
-                        <i data-lucide="user-plus"></i> Add Friend
-                    </button>
-                </div>
-                <div class="card">
-                    ${state.friends.length === 0 ? `
-                        <div style="text-align: center; padding: 60px;">
-                            <div style="font-size: 48px; margin-bottom: 16px;">💝</div>
-                            <h3>No Friends Yet</h3>
-                            <p style="color: var(--text-muted); margin: 12px 0;">Add friends to collaborate on schedules!</p>
-                        </div>
-                    ` : `
-                        <div class="friends-list">
-                            ${state.friends.map(friend => `
-                                <div class="friend-item">
-                                    <div class="friend-avatar">
-                                        ${(friend.name || 'U')[0]}
-                                        <div class="online-indicator"></div>
-                                    </div>
-                                    <div class="friend-info">
-                                        <h4>${friend.name}</h4>
-                                        <p>${friend.email}</p>
-                                    </div>
-                                    <div class="friend-actions">
-                                        <button class="btn btn-secondary" onclick="removeFriend(${friend.id})">Remove</button>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    `}
-                </div>
-            `;
-        }
-
-        function addFriend() {
-            const email = document.getElementById('friendEmail').value;
-
-            if (!email) {
-                showToast('Please enter an email', 'error');
-                return;
-            }
-
-            const friendUser = state.users.find(u => u.email === email);
-            if (!friendUser) {
-                showToast('User not found', 'error');
-                return;
-            }
-
-            if (friendUser.id === state.currentUser?.id) {
-                showToast("You can't add yourself!", 'error');
-                return;
-            }
-
-            if (state.friends.find(f => f.id === friendUser.id)) {
-                showToast('Already friends!', 'error');
-                return;
-            }
-
-            state.friends.push(friendUser);
-            saveState();
-            closeModal('friendModal');
-            navigateTo('friends');
-            showToast('Friend added! 👋', 'success');
-        }
-
-        function removeFriend(id) {
-            state.friends = state.friends.filter(f => f.id !== id);
-            saveState();
-            navigateTo('friends');
-            showToast('Friend removed', 'info');
-        }
+        function getFriendsPage() { return `<div class="page-header"><div><h2>Friends 👫</h2><p style="color: var(--text-muted); margin-top: 4px;">Manage your social connections</p></div><button class="btn btn-primary" onclick="openModal('friendModal')"><i data-lucide="user-plus"></i> Add Friend</button></div><div class="card">${state.friends.length === 0 ? `<div style="text-align: center; padding: 60px;"><div style="font-size: 48px; margin-bottom: 16px;">💝</div><h3>No Friends Yet</h3><p style="color: var(--text-muted); margin: 12px 0;">Add friends to collaborate on schedules!</p></div>` : `<div class="friends-list">${state.friends.map(friend => `<div class="friend-item"><div class="friend-avatar">${(friend.name || 'U')[0]}<div class="online-indicator"></div></div><div class="friend-info"><h4>${friend.name}</h4><p>${friend.email}</p></div><div class="friend-actions"><button class="btn btn-secondary" onclick="removeFriend(${friend.id})">Remove</button></div></div>`).join('')}</div>`}</div>`; }
+        function addFriend() { const email = document.getElementById('friendEmail').value; if (!email) { showToast('Please enter an email', 'error'); return; } const friendUser = state.users.find(u => u.email === email); if (!friendUser) { showToast('User not found', 'error'); return; } if (friendUser.id === state.currentUser?.id) { showToast("You can't add yourself!", 'error'); return; } if (state.friends.find(f => f.id === friendUser.id)) { showToast('Already friends!', 'error'); return; } state.friends.push(friendUser); saveState(); closeModal('friendModal'); navigateTo('friends'); showToast('Friend added! 👋', 'success'); }
+        function removeFriend(id) { state.friends = state.friends.filter(f => f.id !== id); saveState(); navigateTo('friends'); showToast('Friend removed', 'info'); }
 
         // Profile Page
-        function getProfilePage() {
-            const user = state.currentUser || {};
-            return `
-                <div class="page-header">
-                    <h2>My Profile 👤</h2>
-                </div>
-                <div class="card">
-                    <div class="profile-header">
-                        <div class="profile-avatar-section">
-                            <div class="profile-avatar-large" onclick="document.getElementById('avatarInput').click()">
-                                ${user.avatar ? `<img src="${user.avatar}" alt="Avatar">` : (user.name || 'U')[0]}
-                            </div>
-                            <input type="file" id="avatarInput" accept="image/*" style="display: none;" onchange="updateAvatar(event)">
-                            <button class="btn btn-ghost" onclick="document.getElementById('avatarInput').click()">Change Photo</button>
-                        </div>
-                        <div class="profile-form">
-                            <div class="form-group">
-                                <label>Display Name</label>
-                                <input type="text" id="profileName" value="${user.name || ''}" onchange="updateProfile()">
-                            </div>
-                            <div class="form-group">
-                                <label>Bio</label>
-                                <textarea id="profileBio" placeholder="Tell us about yourself..." rows="3" onchange="updateProfile()">${user.bio || ''}</textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Email</label>
-                                <input type="email" value="${user.email || ''}" disabled style="opacity: 0.6;">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Interests</label>
-                        <div class="interest-tags">
-                            ${['Reading', 'Music', 'Art', 'Sports', 'Gaming', 'Cooking', 'Travel', 'Photography', 'Fitness', 'Movies', 'Nature', 'Technology'].map(tag => `
-                                <span class="interest-tag ${(user.interests || []).includes(tag) ? 'selected' : ''}" onclick="toggleInterest('${tag}')">${tag}</span>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function updateProfile() {
-            const name = document.getElementById('profileName').value;
-            const bio = document.getElementById('profileBio').value;
-
-            state.currentUser.name = name;
-            state.currentUser.bio = bio;
-
-            const userIdx = state.users.findIndex(u => u.id === state.currentUser.id);
-            if (userIdx !== -1) {
-                state.users[userIdx] = state.currentUser;
-            }
-
-            saveState();
-            updateUserUI();
-            showToast('Profile updated! ✨', 'success');
-        }
-
-        function updateAvatar(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    state.currentUser.avatar = e.target.result;
-                    const userIdx = state.users.findIndex(u => u.id === state.currentUser.id);
-                    if (userIdx !== -1) {
-                        state.users[userIdx].avatar = e.target.result;
-                    }
-                    saveState();
-                    updateUserUI();
-                    navigateTo('profile');
-                    showToast('Avatar updated! 📸', 'success');
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function toggleInterest(interest) {
-            if (!state.currentUser.interests) state.currentUser.interests = [];
-
-            const idx = state.currentUser.interests.indexOf(interest);
-            if (idx > -1) {
-                state.currentUser.interests.splice(idx, 1);
-            } else {
-                state.currentUser.interests.push(interest);
-            }
-
-            const userIdx = state.users.findIndex(u => u.id === state.currentUser.id);
-            if (userIdx !== -1) {
-                state.users[userIdx].interests = state.currentUser.interests;
-            }
-
-            saveState();
-            navigateTo('profile');
-        }
+        function getProfilePage() { const user = state.currentUser || {}; return `<div class="page-header"><h2>My Profile 👤</h2></div><div class="card"><div class="profile-header"><div class="profile-avatar-section"><div class="profile-avatar-large" onclick="document.getElementById('avatarInput').click()">${user.avatar ? `<img src="${user.avatar}" alt="Avatar">` : (user.name || 'U')[0]}</div><input type="file" id="avatarInput" accept="image/*" style="display: none;" onchange="updateAvatar(event)"><button class="btn btn-ghost" onclick="document.getElementById('avatarInput').click()">Change Photo</button></div><div class="profile-form"><div class="form-group"><label>Display Name</label><input type="text" id="profileName" value="${user.name || ''}" onchange="updateProfile()"></div><div class="form-group"><label>Bio</label><textarea id="profileBio" placeholder="Tell us about yourself..." rows="3" onchange="updateProfile()">${user.bio || ''}</textarea></div><div class="form-group"><label>Email</label><input type="email" value="${user.email || ''}" disabled style="opacity: 0.6;"></div></div></div><div class="form-group"><label>Interests</label><div class="interest-tags">${['Reading', 'Music', 'Art', 'Sports', 'Gaming', 'Cooking', 'Travel', 'Photography', 'Fitness', 'Movies', 'Nature', 'Technology'].map(tag => `<span class="interest-tag ${(user.interests || []).includes(tag) ? 'selected' : ''}" onclick="toggleInterest('${tag}')">${tag}</span>`).join('')}</div></div></div>`; }
+        function updateProfile() { state.currentUser.name = document.getElementById('profileName').value; state.currentUser.bio = document.getElementById('profileBio').value; const userIdx = state.users.findIndex(u => u.id === state.currentUser.id); if (userIdx !== -1) state.users[userIdx] = state.currentUser; saveState(); updateUserUI(); showToast('Profile updated! ✨', 'success'); }
+        function updateAvatar(event) { const file = event.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = function(e) { state.currentUser.avatar = e.target.result; const userIdx = state.users.findIndex(u => u.id === state.currentUser.id); if (userIdx !== -1) state.users[userIdx].avatar = e.target.result; saveState(); updateUserUI(); navigateTo('profile'); showToast('Avatar updated! 📸', 'success'); }; reader.readAsDataURL(file); } }
+        function toggleInterest(interest) { if (!state.currentUser.interests) state.currentUser.interests = []; const idx = state.currentUser.interests.indexOf(interest); if (idx > -1) state.currentUser.interests.splice(idx, 1); else state.currentUser.interests.push(interest); const userIdx = state.users.findIndex(u => u.id === state.currentUser.id); if (userIdx !== -1) state.users[userIdx].interests = state.currentUser.interests; saveState(); navigateTo('profile'); }
 
         // Settings Page
-        function getSettingsPage() {
-            return `
-                <div class="page-header">
-                    <h2>Settings ⚙️</h2>
-                </div>
-                <div class="card">
-                    <div class="settings-section">
-                        <h3>Appearance</h3>
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <h4>Dark Mode</h4>
-                                <p>Switch between light and dark theme</p>
-                            </div>
-                            <div class="toggle-switch ${state.settings.theme === 'dark' ? 'active' : ''}" onclick="toggleTheme()"></div>
-                        </div>
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <h4>Primary Color</h4>
-                                <p>Choose your favorite color</p>
-                            </div>
-                            <div class="color-presets">
-                                <div class="color-preset ${state.settings.primaryColor === '#6B8AFF' ? 'active' : ''}" style="background: #6B8AFF;" onclick="setPrimaryColor('#6B8AFF')"></div>
-                                <div class="color-preset ${state.settings.primaryColor === '#FF9A8B' ? 'active' : ''}" style="background: #FF9A8B;" onclick="setPrimaryColor('#FF9A8B')"></div>
-                                <div class="color-preset ${state.settings.primaryColor === '#88D8B0' ? 'active' : ''}" style="background: #88D8B0;" onclick="setPrimaryColor('#88D8B0')"></div>
-                                <div class="color-preset ${state.settings.primaryColor === '#B19CD9' ? 'active' : ''}" style="background: #B19CD9;" onclick="setPrimaryColor('#B19CD9')"></div>
-                                <div class="color-preset ${state.settings.primaryColor === '#FFB347' ? 'active' : ''}" style="background: #FFB347;" onclick="setPrimaryColor('#FFB347')"></div>
-                                <div class="color-preset ${state.settings.primaryColor === '#FF6B6B' ? 'active' : ''}" style="background: #FF6B6B;" onclick="setPrimaryColor('#FF6B6B')"></div>
-                                <div class="color-preset ${state.settings.primaryColor === '#4ECDC4' ? 'active' : ''}" style="background: #4ECDC4;" onclick="setPrimaryColor('#4ECDC4')"></div>
-                                <input type="color" value="${state.settings.primaryColor}" onchange="setPrimaryColor(this.value)" style="width: 32px; height: 32px; border: none; border-radius: 50%; cursor: pointer;">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="settings-section">
-                        <h3>Account</h3>
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <h4>Personalization Quiz</h4>
-                                <p>Retake the quiz to improve AI suggestions</p>
-                            </div>
-                            <button class="btn btn-secondary" onclick="showQuiz()">Retake Quiz</button>
-                        </div>
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <h4>Delete Account</h4>
-                                <p>Permanently delete your account and data</p>
-                            </div>
-                            <button class="btn btn-danger" onclick="deleteAccount()">Delete</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function toggleTheme() {
-            state.settings.theme = state.settings.theme === 'light' ? 'dark' : 'light';
-            saveState();
-            applyTheme();
-            showToast(state.settings.theme === 'dark' ? 'Dark mode enabled 🌙' : 'Light mode enabled ☀️', 'info');
-        }
-
-        function setPrimaryColor(color) {
-            state.settings.primaryColor = color;
-            document.documentElement.style.setProperty('--primary', color);
-            document.documentElement.style.setProperty('--primary-light', color + '80');
-            document.documentElement.style.setProperty('--primary-dark', color);
-            saveState();
-            showToast('Color updated! 🎨', 'success');
-        }
-
-        function applyTheme() {
-            document.documentElement.setAttribute('data-theme', state.settings.theme);
-            document.documentElement.style.setProperty('--primary', state.settings.primaryColor);
-            document.documentElement.style.setProperty('--primary-light', state.settings.primaryColor + '40');
-            document.documentElement.style.setProperty('--primary-dark', state.settings.primaryColor);
-        }
-
-        function deleteAccount() {
-            if (confirm('Are you sure you want to delete your account? This cannot be undone.')) {
-                state.users = state.users.filter(u => u.id !== state.currentUser.id);
-                state.tasks = state.tasks.filter(t => t.userId !== state.currentUser.id);
-                localStorage.removeItem('leisurely_state');
-                showToast('Account deleted', 'info');
-                location.reload();
-            }
-        }
+        function getSettingsPage() { return `<div class="page-header"><h2>Settings ⚙️</h2></div><div class="card"><div class="settings-section"><h3>Appearance</h3><div class="setting-item"><div class="setting-info"><h4>Dark Mode</h4><p>Switch between light and dark theme</p></div><div class="toggle-switch ${state.settings.theme === 'dark' ? 'active' : ''}" onclick="toggleTheme()"></div></div><div class="setting-item"><div class="setting-info"><h4>Primary Color</h4><p>Choose your favorite color</p></div><div class="color-presets">${['#6B8AFF', '#FF9A8B', '#88D8B0', '#B19CD9', '#FFB347', '#FF6B6B', '#4ECDC4'].map(c => `<div class="color-preset ${state.settings.primaryColor === c ? 'active' : ''}" style="background: ${c};" onclick="setPrimaryColor('${c}')"></div>`).join('')}<input type="color" value="${state.settings.primaryColor}" onchange="setPrimaryColor(this.value)" style="width: 32px; height: 32px; border: none; border-radius: 50%; cursor: pointer;"></div></div></div><div class="settings-section"><h3>Account</h3><div class="setting-item"><div class="setting-info"><h4>Personalization Quiz</h4><p>Retake the quiz to improve AI suggestions</p></div><button class="btn btn-secondary" onclick="showQuiz()">Retake Quiz</button></div><div class="setting-item"><div class="setting-info"><h4>Delete Account</h4><p>Permanently delete your account and data</p></div><button class="btn btn-danger" onclick="deleteAccount()">Delete</button></div></div></div>`; }
+        function toggleTheme() { state.settings.theme = state.settings.theme === 'light' ? 'dark' : 'light'; saveState(); applyTheme(); showToast(state.settings.theme === 'dark' ? 'Dark mode enabled 🌙' : 'Light mode enabled ☀️', 'info'); }
+        function setPrimaryColor(color) { state.settings.primaryColor = color; document.documentElement.style.setProperty('--primary', color); document.documentElement.style.setProperty('--primary-light', color + '80'); document.documentElement.style.setProperty('--primary-dark', color); saveState(); showToast('Color updated! 🎨', 'success'); }
+        function applyTheme() { document.documentElement.setAttribute('data-theme', state.settings.theme); document.documentElement.style.setProperty('--primary', state.settings.primaryColor); document.documentElement.style.setProperty('--primary-light', state.settings.primaryColor + '40'); document.documentElement.style.setProperty('--primary-dark', state.settings.primaryColor); }
+        function deleteAccount() { if (confirm('Are you sure you want to delete your account? This cannot be undone.')) { state.users = state.users.filter(u => u.id !== state.currentUser.id); state.tasks = state.tasks.filter(t => t.userId !== state.currentUser.id); localStorage.removeItem('leisurely_state'); showToast('Account deleted', 'info'); location.reload(); } }
 
         // Task Functions
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.add('active');
-            if (modalId === 'taskModal') {
-                document.getElementById('taskForm').reset();
-                document.getElementById('taskId').value = '';
-                document.getElementById('taskModalTitle').textContent = 'Add Task';
-                document.getElementById('taskDate').value = new Date().toISOString().split('T')[0];
-            }
-            updateIcons();
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-
-        function openTaskModalForDate(date) {
-            openModal('taskModal');
-            document.getElementById('taskDate').value = date;
-        }
-
+        function openModal(modalId) { document.getElementById(modalId).classList.add('active'); if (modalId === 'taskModal') { document.getElementById('taskForm').reset(); document.getElementById('taskId').value = ''; document.getElementById('taskModalTitle').textContent = 'Add Task'; document.getElementById('taskDate').value = new Date().toISOString().split('T')[0]; } updateIcons(); }
+        function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
+        function openTaskModalForDate(date) { openModal('taskModal'); document.getElementById('taskDate').value = date; }
         let selectedTaskColor = '#6B8AFF';
-
-        document.querySelectorAll('#taskColorPresets .color-preset').forEach(el => {
-            el.addEventListener('click', function() {
-                document.querySelectorAll('#taskColorPresets .color-preset').forEach(e => e.classList.remove('active'));
-                this.classList.add('active');
-                selectedTaskColor = this.dataset.color;
-            });
-        });
-
-        function saveTask() {
-            const id = document.getElementById('taskId').value;
-            const title = document.getElementById('taskTitle').value;
-            const description = document.getElementById('taskDesc').value;
-            const date = document.getElementById('taskDate').value;
-            const start = document.getElementById('taskStart').value;
-            const end = document.getElementById('taskEnd').value;
-            const priority = document.getElementById('taskPriority').value;
-            const status = document.getElementById('taskStatus').value;
-
-            if (!title || !date) {
-                showToast('Please fill in required fields', 'error');
-                return;
-            }
-
-            if (id) {
-                const taskIdx = state.tasks.findIndex(t => t.id === parseInt(id));
-                if (taskIdx !== -1) {
-                    state.tasks[taskIdx] = { ...state.tasks[taskIdx], title, description, date, start, end, priority, status, color: selectedTaskColor };
-                }
-                showToast('Task updated! ✨', 'success');
-            } else {
-                const task = {
-                    id: Date.now(),
-                    title,
-                    description,
-                    date,
-                    start,
-                    end,
-                    priority,
-                    status,
-                    color: selectedTaskColor,
-                    userId: state.currentUser?.id
-                };
-                state.tasks.push(task);
-                showToast('Task created! 🎉', 'success');
-            }
-
-            saveState();
-            closeModal('taskModal');
-            navigateTo(state.currentPage);
-        }
-
-        function editTask(id) {
-            const task = state.tasks.find(t => t.id === id);
-            if (task) {
-                openModal('taskModal');
-                document.getElementById('taskId').value = task.id;
-                document.getElementById('taskTitle').value = task.title;
-                document.getElementById('taskDesc').value = task.description || '';
-                document.getElementById('taskDate').value = task.date;
-                document.getElementById('taskStart').value = task.start || '';
-                document.getElementById('taskEnd').value = task.end || '';
-                document.getElementById('taskPriority').value = task.priority;
-                document.getElementById('taskStatus').value = task.status;
-                document.getElementById('taskModalTitle').textContent = 'Edit Task';
-
-                selectedTaskColor = task.color;
-                document.querySelectorAll('#taskColorPresets .color-preset').forEach(el => {
-                    el.classList.toggle('active', el.dataset.color === task.color);
-                });
-            }
-        }
-
-        function deleteTask(id) {
-            if (confirm('Delete this task?')) {
-                state.tasks = state.tasks.filter(t => t.id !== id);
-                saveState();
-                navigateTo(state.currentPage);
-                showToast('Task deleted', 'info');
-            }
-        }
+        document.querySelectorAll('#taskColorPresets .color-preset').forEach(el => { el.addEventListener('click', function() { document.querySelectorAll('#taskColorPresets .color-preset').forEach(e => e.classList.remove('active')); this.classList.add('active'); selectedTaskColor = this.dataset.color; }); });
+        function saveTask() { const id = document.getElementById('taskId').value; const title = document.getElementById('taskTitle').value; const description = document.getElementById('taskDesc').value; const date = document.getElementById('taskDate').value; const start = document.getElementById('taskStart').value; const end = document.getElementById('taskEnd').value; const priority = document.getElementById('taskPriority').value; const status = document.getElementById('taskStatus').value; if (!title || !date) { showToast('Please fill in required fields', 'error'); return; } if (id) { const taskIdx = state.tasks.findIndex(t => t.id === parseInt(id)); if (taskIdx !== -1) state.tasks[taskIdx] = { ...state.tasks[taskIdx], title, description, date, start, end, priority, status, color: selectedTaskColor }; showToast('Task updated! ✨', 'success'); } else { state.tasks.push({ id: Date.now(), title, description, date, start, end, priority, status, color: selectedTaskColor, userId: state.currentUser?.id }); showToast('Task created! 🎉', 'success'); } saveState(); closeModal('taskModal'); navigateTo(state.currentPage); }
+        function editTask(id) { const task = state.tasks.find(t => t.id === id); if (task) { openModal('taskModal'); document.getElementById('taskId').value = task.id; document.getElementById('taskTitle').value = task.title; document.getElementById('taskDesc').value = task.description || ''; document.getElementById('taskDate').value = task.date; document.getElementById('taskStart').value = task.start || ''; document.getElementById('taskEnd').value = task.end || ''; document.getElementById('taskPriority').value = task.priority; document.getElementById('taskStatus').value = task.status; document.getElementById('taskModalTitle').textContent = 'Edit Task'; selectedTaskColor = task.color; document.querySelectorAll('#taskColorPresets .color-preset').forEach(el => { el.classList.toggle('active', el.dataset.color === task.color); }); } }
+        function deleteTask(id) { if (confirm('Delete this task?')) { state.tasks = state.tasks.filter(t => t.id !== id); saveState(); navigateTo(state.currentPage); showToast('Task deleted', 'info'); } }
 
         // UI Helpers
-        function updateUserUI() {
-            const user = state.currentUser;
-            if (user) {
-                const avatar = document.getElementById('sidebarAvatar');
-                if (user.avatar) {
-                    avatar.innerHTML = `<img src="${user.avatar}" alt="Avatar">`;
-                } else {
-                    avatar.textContent = (user.name || 'U')[0];
-                }
-                document.getElementById('sidebarName').textContent = user.name || 'User';
-            }
-        }
-
-        function updateTime() {
-            const timeEl = document.querySelector('.current-time');
-            if (timeEl && document.getElementById('home').style.display !== 'none') {
-                const now = new Date();
-                timeEl.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-            }
-        }
-
-        function updateIcons() {
-            lucide.createIcons();
-        }
-
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `
-                <span style="font-size: 20px;">${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</span>
-                <span>${message}</span>
-            `;
-            container.appendChild(toast);
-
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        function checkMobile() {
-            const isMobile = window.innerWidth <= 768;
-            document.body.setAttribute('data-mobile', isMobile);
-        }
+        function updateUserUI() { const user = state.currentUser; if (user) { const avatar = document.getElementById('sidebarAvatar'); if (user.avatar) avatar.innerHTML = `<img src="${user.avatar}" alt="Avatar">`; else avatar.textContent = (user.name || 'U')[0]; document.getElementById('sidebarName').textContent = user.name || 'User'; } }
+        function updateTime() { const timeEl = document.querySelector('.current-time'); if (timeEl) { const now = new Date(); timeEl.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }); } }
+        function updateIcons() { lucide.createIcons(); }
+        function showToast(message, type = 'info') { const container = document.getElementById('toastContainer'); const toast = document.createElement('div'); toast.className = `toast ${type}`; toast.innerHTML = `<span style="font-size: 20px;">${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</span><span>${message}</span>`; container.appendChild(toast); setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000); }
 
         // Make functions globally accessible
         window.showAuth = showAuth;
@@ -3132,6 +2204,7 @@
         window.openModal = openModal;
         window.closeModal = closeModal;
         window.saveTask = saveTask;
+        window.toggleSidebar = toggleSidebar;
         window.editTask = editTask;
         window.deleteTask = deleteTask;
         window.createRoom = createRoom;
