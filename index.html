@@ -1453,6 +1453,35 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        <div class="sidebar-nav">
+    <a class="nav-item active" data-page="dashboard">
+        <i data-lucide="home"></i>
+        <span>Dashboard</span>
+    </a>
+    <a class="nav-item" data-page="calendar">
+        <i data-lucide="calendar"></i>
+        <span>Calendar</span>
+    </a>
+    <a class="nav-item" data-page="tasks">
+        <i data-lucide="check-square"></i>
+        <span>Tasks</span>
+    </a>
+    <a class="nav-item" data-page="ai-suggestions">
+        <i data-lucide="zap"></i>
+        <span>AI Suggestions</span>
+    </a>
+    <a class="nav-item" data-page="settings">
+        <i data-lucide="settings"></i>
+        <span>Settings</span>
+    </a>
+</div>
+        #dashboard, #calendar, #tasks, #ai-suggestions, #settings {
+    display: none;
+}
+
+#dashboard.active, #calendar.active, #tasks.active, #ai-suggestions.active, #settings.active {
+    display: block;
+}
     </style>
 </head>
 <body>
@@ -2244,18 +2273,28 @@
                     </button>
                 </div>
 
-                <div class="dashboard-grid">
-                    <div class="current-time-card slide-up">
-                        <div class="current-time">${timeStr}</div>
-                        <div class="current-date">${dateStr}</div>
-                        ${currentTask ? `
-                            <div class="current-activity">
-                                <h4>Currently Working On</h4>
-                                <p>${currentTask.title}</p>
-                            </div>
-                        ` : ''}
-                    </div>
-
+                <div class="sidebar-nav">
+            <a class="nav-item active" data-page="dashboard">
+        <i data-lucide="home"></i>
+        <span>Dashboard</span>
+        </a>
+        <a class="nav-item" data-page="calendar">
+        <i data-lucide="calendar"></i>
+        <span>Calendar</span>
+        </a>
+        <a class="nav-item" data-page="tasks">
+        <i data-lucide="check-square"></i>
+        <span>Tasks</span>
+        </a>
+        <a class="nav-item" data-page="ai-suggestions">
+        <i data-lucide="zap"></i>
+        <span>AI Suggestions</span>
+        </a>
+        <a class="nav-item" data-page="settings">
+        <i data-lucide="settings"></i>
+        <span>Settings</span>
+        </a>
+            </div>
                     <div class="card slide-up" style="animation-delay: 0.1s;">
                         <div class="card-header">
                             <h3>Today's Tasks</h3>
@@ -2422,6 +2461,7 @@
         // Calendar Page
         function getCalendarPage() {
             return `
+            <div id="calendar" data-page-content="calendar">
                 <div class="page-header">
                     <h2>Calendar 📅</h2>
                     <button class="btn btn-primary" onclick="openModal('taskModal')">
@@ -2441,6 +2481,7 @@
                         </div>
                     </div>
                     <div class="calendar-grid" id="calendarGrid"></div>
+                </div>
                 </div>
             `;
         }
@@ -3157,6 +3198,36 @@
 
         // Initialize on load
         init();
+        // Navigation handler
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = this.getAttribute('data-page');
+        
+        // Remove active class from all pages
+        document.querySelectorAll('[data-page-content]').forEach(page => {
+            page.classList.remove('active');
+        });
+        
+        // Remove active class from all nav items
+        document.querySelectorAll('.nav-item').forEach(nav => {
+            nav.classList.remove('active');
+        });
+        
+        // Add active class to clicked nav item
+        this.classList.add('active');
+        
+        // Show selected page
+        const page = document.querySelector(`[data-page-content="${target}"]`);
+        if (page) page.classList.add('active');
+    });
+});
+
+// Set dashboard as default on load
+window.addEventListener('load', function() {
+    document.querySelector('[data-page-content="dashboard"]')?.classList.add('active');
+    document.querySelector('[data-page="dashboard"]')?.classList.add('active');
+});
     </script>
 </body>
 </html>
