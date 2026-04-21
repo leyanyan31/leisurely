@@ -2273,27 +2273,32 @@
                     </button>
                 </div>
 
-                <div class="sidebar-nav">
-            <a class="nav-item active" data-page="dashboard">
+    <nav class="sidebar-nav">
+    <a class="nav-item active" data-page="home" onclick="navigateTo('home')">
         <i data-lucide="home"></i>
-        <span>Dashboard</span>
-        </a>
-        <a class="nav-item" data-page="calendar">
-        <i data-lucide="calendar"></i>
+        <span>Home</span>
+    </a>
+    <a class="nav-item" data-page="calendar" onclick="navigateTo('calendar')">
+        <i data-lucide="calendar-days"></i>
         <span>Calendar</span>
-        </a>
-        <a class="nav-item" data-page="tasks">
-        <i data-lucide="check-square"></i>
+    </a>
+    <a class="nav-item" data-page="tasks" onclick="navigateTo('tasks')">
+        <i data-lucide="list-todo"></i>
         <span>Tasks</span>
-        </a>
-        <a class="nav-item" data-page="ai-suggestions">
-        <i data-lucide="zap"></i>
+    </a>
+    <a class="nav-item" data-page="ai" onclick="navigateTo('ai')">
+        <i data-lucide="sparkles"></i>
         <span>AI Suggestions</span>
-        </a>
-        <a class="nav-item" data-page="settings">
-        <i data-lucide="settings"></i>
-        <span>Settings</span>
-        </a>
+    </a>
+    <a class="nav-item" data-page="rooms" onclick="navigateTo('rooms')">
+        <i data-lucide="users"></i>
+        <span>Rooms</span>
+    </a>
+    <a class="nav-item" data-page="friends" onclick="navigateTo('friends')">
+        <i data-lucide="user-plus"></i>
+        <span>Friends</span>
+    </a>
+</nav>
             </div>
                     <div class="card slide-up" style="animation-delay: 0.1s;">
                         <div class="card-header">
