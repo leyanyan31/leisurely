@@ -286,6 +286,7 @@
             display: grid;
             grid-template-columns: 260px 1fr;
             min-height: 100vh;
+            transition: grid-template-columns 0.3s ease;
         }
 
         .main-layout.sidebar-hidden {
@@ -293,7 +294,9 @@
         }
 
         .main-layout.sidebar-hidden .sidebar {
-            display: none;
+            transform: translateX(-100%);
+            visibility: hidden;
+            opacity: 0;
         }
 
         /* Sidebar */
@@ -420,7 +423,7 @@
             margin-left: 260px;
             padding: 24px;
             min-height: 100vh;
-            transition: margin 0.3s;
+            transition: margin 0.3s ease;
         }
 
         .sidebar-hidden .main-content {
@@ -434,7 +437,7 @@
             justify-content: center;
             position: fixed;
             top: 16px;
-            left: 16px;
+            left: 276px;
             width: 44px;
             height: 44px;
             background: var(--surface);
@@ -442,7 +445,7 @@
             border-radius: 8px;
             cursor: pointer;
             z-index: 200;
-            transition: left 0.3s, background 0.2s;
+            transition: left 0.3s ease, background 0.2s;
         }
 
         .sidebar-toggle-btn:hover {
