@@ -11,7 +11,7 @@
         :root {
             --primary: #6B8AFF;
             --primary-light: #A3B9FF;
-            --primary-dark: #4A6AE5;
+            --primary-dark: #4A6AE5; 
             --secondary: #FF9A8B;
             --accent: #88D8B0;
             --warning: #FFE66D;
@@ -307,31 +307,13 @@
             transition: transform 0.3s;
         }
 
-      @media (max-width: 768px) {
-    .sidebar {
-        position: fixed;
-        left: 0;
-        top: 0;
-        width: 260px;
-        height: 100vh;
-        transform: translateX(-100%);
-        z-index: 200;
-        transition: transform 0.3s;
-    }
+        [data-mobile="true"] .sidebar {
+            transform: translateX(-100%);
+        }
 
-    .sidebar.open {
-        transform: translateX(0);
-    }
-
-    .main-content {
-        margin-left: 0 !important;
-        width: 100%;
-    }
-
-    .main-layout {
-        grid-template-columns: 1fr;
-    }
-}
+        [data-mobile="true"] .sidebar.open {
+            transform: translateX(0);
+        }
 
         .sidebar-logo {
             display: flex;
@@ -1471,28 +1453,6 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        <div class="sidebar-nav">
-    <a class="nav-item active" data-page="dashboard">
-        <i data-lucide="home"></i>
-        <span>Dashboard</span>
-    </a>
-    <a class="nav-item" data-page="calendar">
-        <i data-lucide="calendar"></i>
-        <span>Calendar</span>
-    </a>
-    <a class="nav-item" data-page="tasks">
-        <i data-lucide="check-square"></i>
-        <span>Tasks</span>
-    </a>
-    <a class="nav-item" data-page="ai-suggestions">
-        <i data-lucide="zap"></i>
-        <span>AI Suggestions</span>
-    </a>
-    <a class="nav-item" data-page="settings">
-        <i data-lucide="settings"></i>
-        <span>Settings</span>
-    </a>
-</div>
     </style>
 </head>
 <body>
@@ -1688,9 +1648,6 @@
 
             <!-- Main Content -->
             <main class="main-content" id="mainContent">
-                <button class="mobile-menu-btn">
-        <i data-lucide="menu"></i>
-    </button>
                 <!-- Pages will be rendered here -->
             </main>
         </div>
@@ -2287,33 +2244,18 @@
                     </button>
                 </div>
 
-    <nav class="sidebar-nav">
-    <a class="nav-item active" data-page="home" onclick="navigateTo('home')">
-        <i data-lucide="home"></i>
-        <span>Home</span>
-    </a>
-    <a class="nav-item" data-page="calendar" onclick="navigateTo('calendar')">
-        <i data-lucide="calendar-days"></i>
-        <span>Calendar</span>
-    </a>
-    <a class="nav-item" data-page="tasks" onclick="navigateTo('tasks')">
-        <i data-lucide="list-todo"></i>
-        <span>Tasks</span>
-    </a>
-    <a class="nav-item" data-page="ai" onclick="navigateTo('ai')">
-        <i data-lucide="sparkles"></i>
-        <span>AI Suggestions</span>
-    </a>
-    <a class="nav-item" data-page="rooms" onclick="navigateTo('rooms')">
-        <i data-lucide="users"></i>
-        <span>Rooms</span>
-    </a>
-    <a class="nav-item" data-page="friends" onclick="navigateTo('friends')">
-        <i data-lucide="user-plus"></i>
-        <span>Friends</span>
-    </a>
-</nav>
-            </div>
+                <div class="dashboard-grid">
+                    <div class="current-time-card slide-up">
+                        <div class="current-time">${timeStr}</div>
+                        <div class="current-date">${dateStr}</div>
+                        ${currentTask ? `
+                            <div class="current-activity">
+                                <h4>Currently Working On</h4>
+                                <p>${currentTask.title}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+
                     <div class="card slide-up" style="animation-delay: 0.1s;">
                         <div class="card-header">
                             <h3>Today's Tasks</h3>
@@ -2480,7 +2422,6 @@
         // Calendar Page
         function getCalendarPage() {
             return `
-            <div id="calendar" data-page-content="calendar">
                 <div class="page-header">
                     <h2>Calendar 📅</h2>
                     <button class="btn btn-primary" onclick="openModal('taskModal')">
@@ -2500,7 +2441,6 @@
                         </div>
                     </div>
                     <div class="calendar-grid" id="calendarGrid"></div>
-                </div>
                 </div>
             `;
         }
@@ -3217,78 +3157,6 @@
 
         // Initialize on load
         init();
-        // Navigation handler
-document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', function(e) {
-        e.preventDefault();
-        const target = this.getAttribute('data-page');
-        
-        // Remove active class from all pages
-        document.querySelectorAll('[data-page-content]').forEach(page => {
-            page.classList.remove('active');
-        });
-        
-        // Remove active class from all nav items
-        document.querySelectorAll('.nav-item').forEach(nav => {
-            nav.classList.remove('active');
-        });
-        
-        // Add active class to clicked nav item
-        this.classList.add('active');
-        
-        // Show selected page
-        const page = document.querySelector(`[data-page-content="${target}"]`);
-        if (page) page.classList.add('active');
-    });
-});
-
-// Set dashboard as default on load
-window.addEventListener('load', function() {
-    document.querySelector('[data-page-content="dashboard"]')?.classList.add('active');
-    document.querySelector('[data-page="dashboard"]')?.classList.add('active');
-});
     </script>
-    <script>
-    // Mobile menu toggle
-    document.addEventListener('DOMContentLoaded', function() {
-        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
-        const sidebar = document.querySelector('.sidebar');
-        
-        if (mobileMenuBtn) {
-            mobileMenuBtn.addEventListener('click', function() {
-                sidebar.classList.toggle('open');
-            });
-        }
-        
-        // Close sidebar when clicking a nav item
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', function() {
-                sidebar.classList.remove('open');
-            });
-        });
-    });
-</script>
-    <script>
-    // Mobile menu toggle
-    document.addEventListener('DOMContentLoaded', function() {
-        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
-        const sidebar = document.querySelector('.sidebar');
-        
-        if (mobileMenuBtn) {
-            mobileMenuBtn.addEventListener('click', function() {
-                sidebar.classList.toggle('open');
-            });
-        }
-        
-        // Close sidebar when clicking a nav item on mobile
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', function() {
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('open');
-                }
-            });
-        });
-    });
-</script>
 </body>
 </html>
