@@ -307,13 +307,31 @@
             transition: transform 0.3s;
         }
 
-        [data-mobile="true"] .sidebar {
-            transform: translateX(-100%);
-        }
+      @media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 260px;
+        height: 100vh;
+        transform: translateX(-100%);
+        z-index: 200;
+        transition: transform 0.3s;
+    }
 
-        [data-mobile="true"] .sidebar.open {
-            transform: translateX(0);
-        }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+        width: 100%;
+    }
+
+    .main-layout {
+        grid-template-columns: 1fr;
+    }
+}
 
         .sidebar-logo {
             display: flex;
@@ -1475,13 +1493,6 @@
         <span>Settings</span>
     </a>
 </div>
-        #dashboard, #calendar, #tasks, #ai-suggestions, #settings {
-    display: none;
-}
-
-#dashboard.active, #calendar.active, #tasks.active, #ai-suggestions.active, #settings.active {
-    display: block;
-}
     </style>
 </head>
 <body>
@@ -3234,5 +3245,25 @@ window.addEventListener('load', function() {
     document.querySelector('[data-page="dashboard"]')?.classList.add('active');
 });
     </script>
+    <script>
+    // Mobile menu toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const sidebar = document.querySelector('.sidebar');
+        
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('open');
+            });
+        }
+        
+        // Close sidebar when clicking a nav item
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                sidebar.classList.remove('open');
+            });
+        });
+    });
+</script>
 </body>
 </html>
