@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leisurely - Rooms</title>
+    <link rel="stylesheet" href="./Leisurely.css" />
+</head>
+<body data-page="rooms">
+    <div id="app">
+        <header class="topbar">
+            <div class="brand"><div class="logo-bubble">L</div><div><h1>Leisurely</h1><p class="tagline">Friends and shared rooms</p></div></div>
+            <nav class="nav-links"><a href="./dashboard.html">Dashboard</a><a href="./profile.html">Profile</a><a href="./settings.html">Settings</a><a href="#" id="logoutBtn">Log Out</a></nav>
+        </header>
+        <section class="grid">
+            <article class="card">
+                <h3>Add Friend</h3>
+                <form id="friendForm" class="row">
+                    <input required name="friendEmail" type="email" placeholder="friend@email.com" />
+                    <button type="submit">Add Friend</button>
+                </form>
+                <ul id="friendList" class="friend-list"></ul>
+            </article>
+            <article class="card">
+                <h3>Create Room</h3>
+                <form id="roomForm" class="row">
+                    <input required name="roomName" placeholder="Study Group" />
+                    <button type="submit">Create Room</button>
+                </form>
+                <ul id="roomList" class="room-list"></ul>
+            </article>
+        </section>
+    </div>
+    <script src="./Leisurely.app.js"></script>
+</body>
+</html>

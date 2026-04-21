@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leisurely - Sign Up</title>
+    <link rel="stylesheet" href="./Leisurely.css" />
+</head>
+<body data-page="signup">
+    <div id="app">
+        <header class="topbar">
+            <div class="brand"><div class="logo-bubble">L</div><div><h1>Leisurely</h1><p class="tagline">Create your account</p></div></div>
+            <nav class="nav-links"><a href="./Leisurely.html">Home</a><a href="./login.html">Log In</a></nav>
+        </header>
+        <section class="card">
+            <h2>Sign Up + Personalization Test</h2>
+            <form id="signupForm" class="mini-card">
+                <label>Display Name</label><input required name="displayName" />
+                <label>Email</label><input required type="email" name="email" />
+                <label>Password</label><input required minlength="6" type="password" name="password" />
+                <label>Profile Picture</label><input name="photoFile" type="file" accept="image/*" />
+                <label>Productivity Style</label>
+                <select name="style"><option value="focus">Deep focus</option><option value="balanced">Balanced</option><option value="social">Social</option></select>
+                <label>Interests (comma separated)</label><input required name="interests" placeholder="music, exercise, reading" />
+                <label>Best Time</label>
+                <select name="bestTime"><option value="morning">Morning</option><option value="afternoon">Afternoon</option><option value="evening">Evening</option></select>
+                <button type="submit">Create Account</button>
+            </form>
+            <p id="msg" class="status"></p>
+        </section>
+    </div>
+    <script src="./Leisurely.app.js"></script>
+</body>
+</html>
