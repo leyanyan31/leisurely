@@ -1688,6 +1688,9 @@
 
             <!-- Main Content -->
             <main class="main-content" id="mainContent">
+                <button class="mobile-menu-btn">
+        <i data-lucide="menu"></i>
+    </button>
                 <!-- Pages will be rendered here -->
             </main>
         </div>
@@ -3261,6 +3264,28 @@ window.addEventListener('load', function() {
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', function() {
                 sidebar.classList.remove('open');
+            });
+        });
+    });
+</script>
+    <script>
+    // Mobile menu toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const sidebar = document.querySelector('.sidebar');
+        
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('open');
+            });
+        }
+        
+        // Close sidebar when clicking a nav item on mobile
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('open');
+                }
             });
         });
     });
