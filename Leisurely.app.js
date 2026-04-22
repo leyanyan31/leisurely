@@ -339,12 +339,10 @@ function closeEditTaskModal() {
 function wireDashboard() {
     requireAuth();
     const user = me();
-    const shared = getSharedTasks(user);
     const currentRoomId = sessionStorage.getItem("LEISURELY_CURRENT_ROOM") || "";
     const currentRoom = user.rooms.find(r => r.id === currentRoomId);
 
     const statusDiv = document.getElementById("status");
-    const currentRoomId = sessionStorage.getItem("LEISURELY_CURRENT_ROOM") || "";
     const roomSelector = document.getElementById("roomSelector");
     if (roomSelector) {
         const roomOptions = [
@@ -358,12 +356,12 @@ function wireDashboard() {
             window.location.reload(); // Stay on dashboard, just reload with new filter
         };
     }
-    const currentTasks = currentRoomId ? getRoomAllTasks(currentRoomId, user) : user.tasks.filter(t => !t.roomId);
+const currentTasks = currentRoomId ? getRoomAllTasks(currentRoomId, user) : user.tasks.filter(t => !t.roomId);
     const currentActivity = nowTask(currentTasks);
     const timeDisplay = new Date().toLocaleTimeString();
-
-    statusDiv.innerHTML = `<strong>Current Time:</strong> ${timeDisplay} | <strong>Current Activity:</strong> ${esc(currentActivity)}`;
-    statusDiv.setAttribute("aria-live", "polite");
+    
+    const tasksHeading = document.getElementById("tasksHeading");
+    if (tasksHeading) tasksHeading.textContent = currentRoom ? currentRoom.name + " Tasks" : "Personal Tasks";
 
     const viewPersonSelect = document.getElementById("viewPerson");
     let personFilter = "";
@@ -381,10 +379,10 @@ function wireDashboard() {
         };
     }
 
+    const roomLabel = currentRoom ? currentRoom.name : "Personal";
     document.getElementById("kpis").innerHTML = `
-        <div class="kpi"><small>Total Tasks</small><strong>${currentTasks.length}</strong></div>
-        <div class="kpi"><small>Rooms</small><strong>${user.rooms.length}</strong></div>
-        <div class="kpi"><small>Shared Tasks</small><strong>${shared.length}</strong></div>`;
+        <div class="kpi"><small>${roomLabel} Tasks</small><strong>${currentTasks.length}</strong></div>
+        <div class="kpi"><small>Rooms</small><strong>${user.rooms.length}</strong></div>`;
 
     const now = new Date();
     const viewRaw = sessionStorage.getItem("LEISURELY_CAL_VIEW");
@@ -533,10 +531,11 @@ function wireDashboard() {
     document.getElementById("taskForm").onsubmit = (e) => {
         e.preventDefault();
         const d = new FormData(e.target);
-        user.tasks.push({ id: uid(), title: String(d.get("title")).trim(), date: String(d.get("date")), start: String(d.get("start")), end: String(d.get("end")), roomId: currentRoomId || String(d.get("roomId")), status: "planned" });
+        const roomId = currentRoomId || "";
+        user.tasks.push({ id: uid(), title: String(d.get("title")).trim(), date: String(d.get("date")), start: String(d.get("start")), end: String(d.get("end")), roomId: roomId, status: "planned" });
         save();
         taskModal.classList.add("hidden");
-        go("./dashboard.html");
+        window.location.reload();
     };
 
     document.getElementById("editTaskForm").onsubmit = (e) => {
@@ -549,10 +548,9 @@ function wireDashboard() {
             task.date = String(d.get("date"));
             task.start = String(d.get("start"));
             task.end = String(d.get("end"));
-            task.roomId = String(d.get("roomId"));
             save();
             closeEditTaskModal();
-            go("./dashboard.html");
+            window.location.reload();
         }
     };
 
