@@ -387,7 +387,6 @@ function wireDashboard() {
 
     document.getElementById("kpis").innerHTML = `
         <div class="kpi"><small>Total Tasks</small><strong>${currentTasks.length}</strong></div>
-        <div class="kpi"><small>Friends</small><strong>${user.friends.length}</strong></div>
         <div class="kpi"><small>Rooms</small><strong>${user.rooms.length}</strong></div>
         <div class="kpi"><small>Shared Tasks</small><strong>${shared.length}</strong></div>`;
 
@@ -878,26 +877,12 @@ function wireRooms() {
         };
     });
 
-    document.getElementById("friendForm").onsubmit = (e) => {
-        e.preventDefault();
-        const email = String(new FormData(e.target).get("friendEmail")).trim().toLowerCase();
-        const existingUser = byEmail(email);
-        console.log("Searching for:", email);
-        console.log("All users:", state.users.map(u => u.email));
-        if (!existingUser) return void alert("No account found with that email. Ask your friend to sign up first!");
-        if (email === user.email) return void alert("You can't add yourself!");
-        if (user.friends.includes(email)) return void alert("Already friends!");
-        user.friends.push(email);
-        save();
-        go("./rooms.html");
-    };
-
     document.getElementById("roomForm").onsubmit = (e) => {
         e.preventDefault();
         const name = String(new FormData(e.target).get("roomName")).trim();
         if (!name) return;
         const roomCode = generateRoomCode();
-        user.rooms.push({ id: uid(), name, members: [user.email, ...user.friends], code: roomCode });
+        user.rooms.push({ id: uid(), name, members: [user.email], code: roomCode });
         save();
         go("./rooms.html");
     };
