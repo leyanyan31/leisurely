@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leisurely - Profile</title>
+    <link rel="stylesheet" href="./Leisurely.css" />
+</head>
+<body data-page="profile">
+    <div id="app">
+        <header class="topbar">
+            <div class="brand"><div class="logo-bubble" id="headerAvatar" aria-hidden="true"></div><div><h1 id="headerName">Leisurely</h1><p class="tagline">Edit profile</p></div></div>
+            <nav class="nav-links"><a href="./dashboard.html">Dashboard</a><a href="./settings.html">Settings</a><a href="#" id="logoutBtn">Log Out</a></nav>
+        </header>
+        <section class="card">
+            <form id="profileForm" class="mini-card">
+                <label>Display Name</label><input id="displayName" name="displayName" required />
+                <label>Email</label><input id="email" name="email" type="email" required />
+                <label>Profile Picture</label><input name="photoFile" type="file" accept="image/*" />
+                <img id="profilePreview" class="profile-photo hidden" alt="Profile preview" />
+                <button type="submit">Save Profile</button>
+            </form>
+            <div class="mini-card" style="margin-top:16px;">
+                <button type="button" id="deleteAccountBtn" class="danger">Delete Account</button>
+            </div>
+            <p id="profileMsg" class="status"></p>
+        </section>
+    </div>
+    <script src="./Leisurely.app.js"></script>
+</body>
+</html>

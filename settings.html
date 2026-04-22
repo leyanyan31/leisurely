@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leisurely - Settings</title>
+    <link rel="stylesheet" href="./Leisurely.css" />
+</head>
+<body data-page="settings">
+    <div id="app">
+        <header class="topbar">
+            <div class="brand"><div class="logo-bubble" id="headerAvatar" aria-hidden="true"></div><div><h1 id="headerName">Leisurely</h1><p class="tagline">Theme and colors</p></div></div>
+            <nav class="nav-links"><a href="./dashboard.html">Dashboard</a><a href="./profile.html">Profile</a><a href="#" id="logoutBtn">Log Out</a></nav>
+        </header>
+        <section class="card">
+            <form id="settingsForm" class="mini-card">
+                <label>Theme</label>
+                <select name="theme"><option value="light">Light</option><option value="dark">Dark</option></select>
+                <label>Accent Color</label>
+                <input type="color" name="accent" />
+                <button type="submit">Save Settings</button>
+            </form>
+        </section>
+    </div>
+    <script src="./Leisurely.app.js"></script>
+</body>
+</html>
