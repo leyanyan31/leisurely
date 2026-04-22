@@ -881,8 +881,13 @@ function wireRooms() {
     document.getElementById("friendForm").onsubmit = (e) => {
         e.preventDefault();
         const email = String(new FormData(e.target).get("friendEmail")).trim().toLowerCase();
-        if (!byEmail(email)) return void alert("That account does not exist.");
-        if (!user.friends.includes(email)) user.friends.push(email);
+        const existingUser = byEmail(email);
+        console.log("Searching for:", email);
+        console.log("All users:", state.users.map(u => u.email));
+        if (!existingUser) return void alert("No account found with that email. Ask your friend to sign up first!");
+        if (email === user.email) return void alert("You can't add yourself!");
+        if (user.friends.includes(email)) return void alert("Already friends!");
+        user.friends.push(email);
         save();
         go("./rooms.html");
     };
