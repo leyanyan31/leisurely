@@ -843,7 +843,7 @@ function wireRooms() {
     document.querySelectorAll(".open-room-btn").forEach((btn) => {
         btn.onclick = () => {
             const roomId = btn.dataset.roomId;
-            window.location.href = `./room.html?roomId=${roomId}`;
+            window.location.href = `./room-v3.html?roomId=${roomId}`;
         };
     });
 
@@ -890,7 +890,7 @@ function wireRooms() {
             user.rooms.push({ id: roomByCode.id, name: roomByCode.name, members: roomByCode.members, code: roomByCode.code });
             save();
             alert("Successfully joined the room!");
-            go("./room-v3.html");
+            go("./rooms.html");
         };
     }
 }
