@@ -355,7 +355,7 @@ function wireDashboard() {
             const selectedRoom = e.target.value;
             sessionStorage.setItem("LEISURELY_CURRENT_ROOM", selectedRoom);
             if (selectedRoom && user.rooms.find(r => r.id === selectedRoom)) {
-                window.location.href = `./room.html?roomId=${selectedRoom}`;
+                window.location.href = "./rooms.html";
             } else {
                 window.location.href = "./dashboard.html";
             }
@@ -870,21 +870,22 @@ function wireRooms() {
     document.querySelectorAll(".open-room-btn").forEach((btn) => {
         btn.onclick = () => {
             const roomId = btn.dataset.roomId;
-            window.location.href = `./room-v3.html?roomId=${roomId}`;
+            window.location.href = `./room-updated.html?roomId=${roomId}`;
         };
     });
 
     document.getElementById("roomForm").onsubmit = (e) => {
         e.preventDefault();
         const form = e.target;
-        const nameInput = form.elements.roomName || form.querySelector('input[name="roomName"]');
-        const name = nameInput ? String(nameInput.value).trim() : "";
-        if (!name) { alert("Please enter a room name"); return; }
+        const formData = new FormData(form);
+        const name = formData.get("roomName");
+        if (!name || !name.trim()) { alert("Please enter a room name"); return; }
         const roomCode = generateRoomCode();
-        user.rooms.push({ id: uid(), name, members: [user.email], code: roomCode });
-        save();
-        alert("Room created! Code: " + roomCode);
-        go("./rooms.html");
+        const newRoom = { id: uid(), name: name.trim(), members: [user.email], code: roomCode };
+        user.rooms.push(newRoom);
+        const saved = save();
+        alert("Room created! Code: " + roomCode + "\nName: " + name);
+        window.location.href = "./rooms.html";
     };
 
     if (joinForm) {
