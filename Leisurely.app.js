@@ -1,4 +1,4 @@
-const STORAGE_KEY = "leisurely-app-v4";
+const STORAGE_KEY = "leisurely-app-v5";
 const DEFAULT_COLOR = "#3b82f6";
 const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"users":[],"session":null}');
 const page = document.body.dataset.page;
@@ -11,6 +11,7 @@ const byEmail = (e) => state.users.find((u) => u.email === String(e || "").trim(
 const me = () => byEmail(state.session);
 const go = (path) => { window.location.href = path; };
 const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
 function saveSafe() {
     try {
         save();
@@ -22,7 +23,7 @@ function saveSafe() {
 
 function applyTheme() {
     const user = me();
-    const authOnlyPages = new Set(["dashboard", "profile", "settings", "rooms"]);
+    const authOnlyPages = new Set(["dashboard", "profile", "settings", "rooms", "room"]);
     if (!user || !authOnlyPages.has(page)) {
         document.documentElement.classList.remove("dark");
         document.body.classList.remove("dark");
@@ -87,7 +88,7 @@ function wireSignup() {
         e.preventDefault();
         const d = new FormData(form);
         const email = String(d.get("email")).trim().toLowerCase();
-        if (byEmail(email)) return void (msg.innerHTML = `<span class="danger">Email already exists.</span>`);
+        if (byEmail(email)) return void (msg.innerHTML = `<span class="danger" role="alert">Email already exists.</span>`);
         const photoFile = d.get("photoFile");
         const photoData = photoFile instanceof File && photoFile.size > 0 ? await imageFileToOptimizedDataUrl(photoFile) : "";
         state.users.push({
@@ -107,7 +108,7 @@ function wireSignup() {
             passwordReset: null
         });
         state.session = email;
-        if (!saveSafe()) return void (msg.innerHTML = `<span class="danger">Image too large to save. Try a smaller photo.</span>`);
+        if (!saveSafe()) return void (msg.innerHTML = `<span class="danger" role="alert">Image too large to save. Try a smaller photo.</span>`);
         go("./dashboard.html");
     };
 }
@@ -119,7 +120,7 @@ function wireLogin() {
         e.preventDefault();
         const d = new FormData(form);
         const user = byEmail(d.get("email"));
-        if (!user || user.password !== String(d.get("password"))) return void (msg.innerHTML = `<span class="danger">Invalid email or password.</span>`);
+        if (!user || user.password !== String(d.get("password"))) return void (msg.innerHTML = `<span class="danger" role="alert">Invalid email or password.</span>`);
         state.session = user.email;
         save();
         go("./dashboard.html");
@@ -134,7 +135,7 @@ function wireForgotPassword() {
         e.preventDefault();
         const email = String(new FormData(sendForm).get("email")).trim().toLowerCase();
         const user = byEmail(email);
-        if (!user) return void (msg.innerHTML = `<span class="danger">No account found.</span>`);
+        if (!user) return void (msg.innerHTML = `<span class="danger" role="alert">No account found.</span>`);
         const code = String(Math.floor(100000 + Math.random() * 900000));
         user.passwordReset = { code, at: Date.now() };
         save();
@@ -147,8 +148,8 @@ function wireForgotPassword() {
         const code = String(d.get("code")).trim();
         const pass = String(d.get("password")).trim();
         const user = byEmail(email);
-        if (!user || !user.passwordReset || user.passwordReset.code !== code) return void (msg.innerHTML = `<span class="danger">Invalid reset code.</span>`);
-        if (pass.length < 6) return void (msg.innerHTML = `<span class="danger">Password must be at least 6 characters.</span>`);
+        if (!user || !user.passwordReset || user.passwordReset.code !== code) return void (msg.innerHTML = `<span class="danger" role="alert">Invalid reset code.</span>`);
+        if (pass.length < 6) return void (msg.innerHTML = `<span class="danger" role="alert">Password must be at least 6 characters.</span>`);
         user.password = pass;
         user.passwordReset = null;
         save();
@@ -162,33 +163,65 @@ function nowTask(tasks) {
     return tasks.find((t) => t.date === todayISO() && t.start <= time && t.end >= time)?.title || "Free time";
 }
 
-function aiIdeas(user) {
+function aiIdeasGroup(roomMembers, roomTasks) {
     const ideas = [];
-    const interests = user.personalization.interests || [];
-    const style = user.personalization.style || "balanced";
-    const bestTime = user.personalization.bestTime || "morning";
+    const allInterests = [];
+    const styles = [];
+    const bestTimes = [];
+    let memberCount = 0;
 
-    if (!user.tasks.some((t) => t.start <= "19:00" && t.end >= "19:00")) ideas.push("7:00 PM is open. Great for a restorative activity.");
-    if (style === "focus") ideas.push("Use a 50/10 focus sprint for your top priority.");
-    if (style === "social") ideas.push("Open a room and invite a friend for shared scheduling.");
-    if (style === "balanced") ideas.push("Alternate a 40-minute work block with a 10-minute recharge break.");
+    for (const email of roomMembers) {
+        const user = byEmail(email);
+        if (user) {
+            memberCount++;
+            if (user.personalization?.interests) allInterests.push(...user.personalization.interests);
+            if (user.personalization?.style) styles.push(user.personalization.style);
+            if (user.personalization?.bestTime) bestTimes.push(user.personalization.bestTime);
+        }
+    }
 
-    if (bestTime === "morning") ideas.push("Do your hardest task in the morning to use your peak energy.");
-    if (bestTime === "afternoon") ideas.push("Reserve afternoons for collaborative and medium-effort tasks.");
-    if (bestTime === "evening") ideas.push("Use evening slots for low-pressure progress and reflection.");
+    if (memberCount === 0) {
+        const user = me();
+        if (user) {
+            allInterests.push(...(user.personalization?.interests || []));
+            styles.push(user.personalization?.style || "balanced");
+            bestTimes.push(user.personalization?.bestTime || "morning");
+            memberCount = 1;
+        }
+    }
 
-    if (interests.includes("music")) ideas.push("Add a 20-minute music block during free time.");
-    if (interests.includes("exercise")) ideas.push("Add a short movement break between long tasks.");
-    if (interests.includes("reading")) ideas.push("Plan a 25-minute reading session after your next task.");
-    if (interests.includes("coding")) ideas.push("Use one free block for a mini coding challenge.");
-    if (interests.includes("art")) ideas.push("Set a creative art session in your next free window.");
+    const uniqueInterests = [...new Set(allInterests)];
+
+    const taskTimes = roomTasks.filter(t => t.date === todayISO()).map(t => t.start);
+    const has7PM = taskTimes.some(t => t <= "19:00" && parseInt(t) >= 19);
+    if (!has7PM) ideas.push("7:00 PM is open. Great for a group activity.");
+
+    const styleCounts = styles.reduce((acc, s) => { acc[s] = (acc[s] || 0) + 1; return acc; }, {});
+    const dominantStyle = Object.entries(styleCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "balanced";
+
+    if (dominantStyle === "focus") ideas.push("Use 50/10 focus sprints for top priorities.");
+    if (dominantStyle === "social") ideas.push("Plan a collaborative session - great for group synergy!");
+    if (dominantStyle === "balanced") ideas.push("Alternate 40-min work blocks with 10-min breaks.");
+
+    const timeCounts = bestTimes.reduce((acc, t) => { acc[t] = (acc[t] || 0) + 1; return acc; }, {});
+    const dominantTime = Object.entries(timeCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "morning";
+
+    if (dominantTime === "morning") ideas.push("Schedule hard tasks in morning when energy peaks.");
+    if (dominantTime === "afternoon") ideas.push("Reserve afternoons for collaborative and medium-effort work.");
+    if (dominantTime === "evening") ideas.push("Use evenings for reflection and low-pressure progress.");
+
+    if (uniqueInterests.includes("music")) ideas.push("Add a 20-minute music break - match group vibe!");
+    if (uniqueInterests.includes("exercise")) ideas.push("Schedule a movement break - group stretches!");
+    if (uniqueInterests.includes("reading")) ideas.push("Plan a quiet reading session for the group.");
+    if (uniqueInterests.includes("coding")) ideas.push("Group coding session - pair programming?");
+    if (uniqueInterests.includes("art")) ideas.push("Creative session - collaborative art or brainstorming.");
 
     ideas.push(
-        "Do a 5-minute planning reset before starting your next task.",
-        "Batch similar tasks together to reduce context switching.",
-        "If energy feels low, start with a 10-minute easy win task.",
-        "Leave one open slot today for unexpected priorities.",
-        "End your day with a 5-minute review and tomorrow plan."
+        "Do a 5-minute planning reset before starting.",
+        "Batch similar tasks to reduce switching.",
+        "Start with a quick win to build momentum.",
+        "Leave one slot open for unexpected priorities.",
+        "End with a 5-minute group review."
     );
 
     const unique = [...new Set(ideas)];
@@ -226,14 +259,14 @@ function buildCalendar(tasks, year, month) {
     const m = month;
     const start = new Date(y, m, 1).getDay();
     const total = new Date(y, m + 1, 0).getDate();
-    const names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((n) => `<div class="day-name">${n}</div>`).join("");
+    const names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((n) => `<div class="day-name" role="columnheader" aria-label="${n}">${n}</div>`).join("");
     const cells = [names];
-    for (let i = 0; i < start; i += 1) cells.push(`<div class="day-cell"></div>`);
+    for (let i = 0; i < start; i += 1) cells.push(`<div class="day-cell" role="gridcell"></div>`);
     for (let day = 1; day <= total; day += 1) {
         const iso = `${y}-${String(m + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
         const dayTasks = tasks.filter((t) => t.date === iso).slice(0, 3);
         const isToday = day === d.getDate() && y === d.getFullYear() && m === d.getMonth();
-        cells.push(`<div class="day-cell ${isToday ? "today" : ""}"><strong>${day}</strong>${dayTasks.map((t) => `<div class="day-task">${esc(t.title)}</div>`).join("")}</div>`);
+        cells.push(`<div class="day-cell ${isToday ? "today" : ""}" role="gridcell" aria-label="${day}${isToday ? ', today' : ''}"><strong>${day}</strong>${dayTasks.map((t) => `<div class="day-task">${esc(t.title)}</div>`).join("")}</div>`);
     }
     return cells.join("");
 }
@@ -243,16 +276,121 @@ function getSharedTasks(user) {
     return state.users.flatMap((other) => other.email === user.email ? [] : other.tasks.filter((t) => t.roomId && roomIds.has(t.roomId)).map((t) => ({ ...t, owner: other.profile.displayName || other.email })));
 }
 
+function getRoomTasks(roomId, user) {
+    const room = user.rooms.find(r => r.id === roomId);
+    if (!room) return [];
+    const roomMemberEmails = room.members || [];
+    return state.users
+        .filter(u => roomMemberEmails.includes(u.email))
+        .flatMap(u => u.tasks.map(t => ({ ...t, owner: u.profile.displayName || u.email, ownerEmail: u.email })));
+}
+
+function getRoomMembers(roomId, user) {
+    const room = user.rooms.find(r => r.id === roomId);
+    if (!room) return [user.email];
+    return room.members || [user.email];
+}
+
+function getRoomAllTasks(roomId, user) {
+    const roomMembers = getRoomMembers(roomId, user);
+    const room = user.rooms.find(r => r.id === roomId);
+    if (!room) return [];
+    return state.users
+        .filter(u => roomMembers.includes(u.email))
+        .flatMap(u => u.tasks.filter(t => t.roomId === roomId).map(t => ({ ...t, owner: u.profile.displayName || u.email, ownerEmail: u.email })));
+}
+
+function getAllMembersWithTasks(roomId, user) {
+    const roomMembers = getRoomMembers(roomId, user);
+    return state.users
+        .filter(u => roomMembers.includes(u.email))
+        .map(u => ({
+            email: u.email,
+            displayName: u.profile.displayName || u.email,
+            tasks: u.tasks.filter(t => !t.roomId || t.roomId === roomId)
+        }));
+}
+
+function openEditTaskModal(taskId) {
+    const user = me();
+    const task = user.tasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    const modal = document.getElementById("editTaskModal");
+    const form = document.getElementById("editTaskForm");
+    
+    document.getElementById("editTaskId").value = task.id;
+    document.getElementById("editTaskTitle").value = task.title;
+    document.getElementById("editTaskDate").value = task.date;
+    document.getElementById("editTaskStart").value = task.start;
+    document.getElementById("editTaskEnd").value = task.end;
+    document.getElementById("editTaskRoom").value = task.roomId || "";
+    
+    modal.classList.remove("hidden");
+    modal.setAttribute("aria-hidden", "false");
+}
+
+function closeEditTaskModal() {
+    const modal = document.getElementById("editTaskModal");
+    modal.classList.add("hidden");
+    modal.setAttribute("aria-hidden", "true");
+}
+
 function wireDashboard() {
     requireAuth();
     const user = me();
     const shared = getSharedTasks(user);
-    document.getElementById("status").innerHTML = `<strong>Current Time:</strong> ${new Date().toLocaleTimeString()} | <strong>Current Activity:</strong> ${esc(nowTask(user.tasks))}`;
+    const currentRoomId = sessionStorage.getItem("LEISURELY_CURRENT_ROOM") || "";
+    const currentRoom = user.rooms.find(r => r.id === currentRoomId);
+
+    const statusDiv = document.getElementById("status");
+    const roomSelector = document.getElementById("roomSelector");
+    if (roomSelector) {
+        const roomOptions = [
+            `<option value="">Personal</option>`,
+            ...user.rooms.map(r => `<option value="${r.id}" ${r.id === currentRoomId ? 'selected' : ''}>${esc(r.name)}</option>`)
+        ].join("");
+        roomSelector.innerHTML = roomOptions;
+        roomSelector.onchange = (e) => {
+            const selectedRoom = e.target.value;
+            sessionStorage.setItem("LEISURELY_CURRENT_ROOM", selectedRoom);
+            if (selectedRoom && user.rooms.find(r => r.id === selectedRoom)) {
+                window.location.href = `./room.html?roomId=${selectedRoom}`;
+            } else {
+                window.location.href = "./dashboard.html";
+            }
+        };
+    }
+
+    const currentTasks = currentRoomId ? getRoomAllTasks(currentRoomId, user) : user.tasks;
+    const currentActivity = nowTask(currentTasks);
+    const timeDisplay = new Date().toLocaleTimeString();
+
+    statusDiv.innerHTML = `<strong>Current Time:</strong> ${timeDisplay} | <strong>Current Activity:</strong> ${esc(currentActivity)}`;
+    statusDiv.setAttribute("aria-live", "polite");
+
+    const viewPersonSelect = document.getElementById("viewPerson");
+    let personFilter = "";
+    if (currentRoomId && viewPersonSelect) {
+        const membersWithTasks = getAllMembersWithTasks(currentRoomId, user);
+        const personOptions = [
+            `<option value="">All Members</option>`,
+            ...membersWithTasks.map(m => `<option value="${esc(m.email)}">${esc(m.displayName)}</option>`)
+        ].join("");
+        viewPersonSelect.innerHTML = personOptions;
+        viewPersonSelect.onchange = (e) => {
+            personFilter = e.target.value;
+            renderTaskRows();
+            renderCalendar();
+        };
+    }
+
     document.getElementById("kpis").innerHTML = `
-        <div class="kpi"><small>Total Tasks</small><strong>${user.tasks.length}</strong></div>
+        <div class="kpi"><small>Total Tasks</small><strong>${currentTasks.length}</strong></div>
         <div class="kpi"><small>Friends</small><strong>${user.friends.length}</strong></div>
         <div class="kpi"><small>Rooms</small><strong>${user.rooms.length}</strong></div>
         <div class="kpi"><small>Shared Tasks</small><strong>${shared.length}</strong></div>`;
+
     const now = new Date();
     const viewRaw = sessionStorage.getItem("LEISURELY_CAL_VIEW");
     let viewYear = now.getFullYear();
@@ -266,15 +404,20 @@ function wireDashboard() {
     }
 
     const renderCalendar = () => {
-        document.getElementById("calendar").innerHTML = buildCalendar([...user.tasks, ...shared], viewYear, viewMonth);
+        const tasksToShow = personFilter ? currentTasks.filter(t => t.ownerEmail === personFilter) : currentTasks;
+        document.getElementById("calendar").innerHTML = buildCalendar(tasksToShow, viewYear, viewMonth);
         document.getElementById("calendarTitle").textContent = `Calendar - ${monthNames[viewMonth]} ${viewYear}`;
         sessionStorage.setItem("LEISURELY_CAL_VIEW", `${viewYear}-${viewMonth}`);
     };
-    renderCalendar();
+
+    const roomMembers = currentRoomId ? getRoomMembers(currentRoomId, user) : [user.email];
     const renderAi = () => {
-        const shuffled = [...aiIdeas(user)].sort(() => Math.random() - 0.5);
+        const groupIdeas = aiIdeasGroup(roomMembers, currentTasks);
+        const shuffled = [...groupIdeas].sort(() => Math.random() - 0.5);
+        const aiLabel = currentRoomId ? `Group AI Suggestions - ${esc(currentRoom?.name || "Room")}` : "AI Suggestions";
+        document.querySelector(".card h3").textContent = aiLabel;
         document.getElementById("aiList").innerHTML = shuffled
-            .map((x, idx) => `<li><span>${esc(x)}</span> <button type="button" class="action-btn add-ai-btn" data-ai-idx="${idx}">Add to Tasks</button></li>`)
+            .map((x, idx) => `<li><span>${esc(x)}</span> <button type="button" class="action-btn add-ai-btn" data-ai-idx="${idx}" aria-label="Add suggestion to tasks">Add to Tasks</button></li>`)
             .join("");
         const aiButtons = document.querySelectorAll(".add-ai-btn");
         aiButtons.forEach((btn) => {
@@ -282,14 +425,14 @@ function wireDashboard() {
                 const index = Number(btn.dataset.aiIdx);
                 const pick = shuffled[index];
                 if (!pick) return;
-                const slot = nextFreeSlot(user.tasks);
+                const slot = nextFreeSlot(currentTasks);
                 user.tasks.push({
                     id: uid(),
                     title: suggestionToTaskTitle(pick),
                     date: slot.date,
                     start: slot.start,
                     end: slot.end,
-                    roomId: "",
+                    roomId: currentRoomId,
                     status: "planned"
                 });
                 save();
@@ -297,23 +440,45 @@ function wireDashboard() {
             };
         });
     };
+
+    renderCalendar();
     renderAi();
-    const ownRows = user.tasks.map((t) => {
-        const doneClass = t.status === "done" ? "task-done" : "";
-        const room = esc(user.rooms.find((r) => r.id === t.roomId)?.name || "Personal");
-        return `<tr>
-            <td class="${doneClass}">${esc(t.title)}</td>
-            <td>${t.date}</td>
-            <td>${t.start}-${t.end}</td>
-            <td>${room}</td>
-            <td>
-                <button type="button" class="action-btn toggle-done-btn" data-task-id="${t.id}">${t.status === "done" ? "Undo" : "Done"}</button>
-                <button type="button" class="action-btn ghost delete-task-btn" data-task-id="${t.id}">Delete</button>
-            </td>
-        </tr>`;
+
+    const renderTaskRows = () => {
+        let tasksToShow = currentTasks;
+        if (personFilter) {
+            tasksToShow = currentTasks.filter(t => t.ownerEmail === personFilter);
+        }
+
+        const ownRows = tasksToShow.filter(t => t.ownerEmail === user.email || !t.ownerEmail).map((t) => {
+            const doneClass = t.status === "done" ? "task-done" : "";
+            const room = esc(user.rooms.find((r) => r.id === t.roomId)?.name || "Personal");
+            return `<tr>
+                <td class="${doneClass}">${esc(t.title)}</td>
+                <td>${t.date}</td>
+                <td>${t.start}-${t.end}</td>
+                <td>${room}</td>
+                <td>
+                    <button type="button" class="action-btn edit-task-btn" data-task-id="${t.id}" aria-label="Edit task">Edit</button>
+                    <button type="button" class="action-btn toggle-done-btn" data-task-id="${t.id}" aria-label="${t.status === 'done' ? 'Undo' : 'Mark'} task as done">${t.status === "done" ? "Undo" : "Done"}</button>
+                    <button type="button" class="action-btn ghost delete-task-btn" data-task-id="${t.id}" aria-label="Delete task">Delete</button>
+                </td>
+            </tr>`;
+        });
+
+        const otherRows = tasksToShow.filter(t => t.ownerEmail && t.ownerEmail !== user.email).map((t) => `<tr><td>${esc(t.title)}</td><td>${t.date}</td><td>${t.start}-${t.end}</td><td>Shared: ${esc(t.owner)}</td><td>-</td></tr>`);
+
+        document.getElementById("taskRows").innerHTML = [...ownRows, ...otherRows].join("") || "<tr><td colspan='5'>No tasks yet.</td></tr>";
+    };
+
+    renderTaskRows();
+
+    document.querySelectorAll(".edit-task-btn").forEach((btn) => {
+        btn.onclick = () => {
+            openEditTaskModal(btn.dataset.taskId);
+        };
     });
-    const sharedRows = shared.map((t) => `<tr><td>${esc(t.title)}</td><td>${t.date}</td><td>${t.start}-${t.end}</td><td>Shared: ${esc(t.owner)}</td><td>-</td></tr>`);
-    document.getElementById("taskRows").innerHTML = [...ownRows, ...sharedRows].join("") || "<tr><td colspan='5'>No tasks yet.</td></tr>";
+
     document.querySelectorAll(".toggle-done-btn").forEach((btn) => {
         btn.onclick = () => {
             const task = user.tasks.find((t) => t.id === btn.dataset.taskId);
@@ -323,6 +488,7 @@ function wireDashboard() {
             go("./dashboard.html");
         };
     });
+
     document.querySelectorAll(".delete-task-btn").forEach((btn) => {
         btn.onclick = () => {
             user.tasks = user.tasks.filter((t) => t.id !== btn.dataset.taskId);
@@ -330,9 +496,11 @@ function wireDashboard() {
             go("./dashboard.html");
         };
     });
+
     document.getElementById("refreshAiBtn").onclick = () => {
         renderAi();
     };
+
     document.getElementById("prevMonthBtn").onclick = () => {
         viewMonth -= 1;
         if (viewMonth < 0) {
@@ -341,12 +509,194 @@ function wireDashboard() {
         }
         renderCalendar();
     };
+
     document.getElementById("nextMonthBtn").onclick = () => {
         viewMonth += 1;
         if (viewMonth > 11) {
             viewMonth = 0;
             viewYear += 1;
         }
+        renderCalendar();
+    };
+
+    const taskModal = document.getElementById("taskModal");
+    document.getElementById("openTaskModalBtn").onclick = () => {
+        taskModal.classList.remove("hidden");
+        taskModal.setAttribute("aria-hidden", "false");
+    };
+    document.getElementById("closeTaskModalBtn").onclick = () => {
+        taskModal.classList.add("hidden");
+        taskModal.setAttribute("aria-hidden", "true");
+    };
+    taskModal.onclick = (e) => {
+        if (e.target === taskModal) {
+            taskModal.classList.add("hidden");
+            taskModal.setAttribute("aria-hidden", "true");
+        }
+    };
+
+    document.getElementById("taskForm").onsubmit = (e) => {
+        e.preventDefault();
+        const d = new FormData(e.target);
+        user.tasks.push({ id: uid(), title: String(d.get("title")).trim(), date: String(d.get("date")), start: String(d.get("start")), end: String(d.get("end")), roomId: currentRoomId || String(d.get("roomId")), status: "planned" });
+        save();
+        taskModal.classList.add("hidden");
+        go("./dashboard.html");
+    };
+
+    document.getElementById("editTaskForm").onsubmit = (e) => {
+        e.preventDefault();
+        const d = new FormData(e.target);
+        const taskId = document.getElementById("editTaskId").value;
+        const task = user.tasks.find(t => t.id === taskId);
+        if (task) {
+            task.title = String(d.get("title")).trim();
+            task.date = String(d.get("date"));
+            task.start = String(d.get("start"));
+            task.end = String(d.get("end"));
+            task.roomId = String(d.get("roomId"));
+            save();
+            closeEditTaskModal();
+            go("./dashboard.html");
+        }
+    };
+
+    document.getElementById("closeEditTaskModalBtn").onclick = closeEditTaskModal;
+    document.getElementById("editTaskModal").onclick = (e) => {
+        if (e.target.id === "editTaskModal") closeEditTaskModal();
+    };
+
+    document.getElementById("roomOptions").innerHTML = `<option value="">Personal</option>${user.rooms.map((r) => `<option value="${r.id}">${esc(r.name)}</option>`).join("")}`;
+    document.getElementById("editTaskRoomOptions").innerHTML = `<option value="">Personal</option>${user.rooms.map((r) => `<option value="${r.id}">${esc(r.name)}</option>`).join("")}`;
+}
+
+function wireRoom() {
+    requireAuth();
+    const user = me();
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomId = urlParams.get("roomId");
+    const room = user.rooms.find(r => r.id === roomId);
+
+    if (!room) {
+        alert("Room not found. Redirecting to dashboard.");
+        go("./dashboard.html");
+        return;
+    }
+
+    sessionStorage.setItem("LEISURELY_CURRENT_ROOM", roomId);
+    const roomTitle = document.getElementById("roomTitle");
+    if (roomTitle) roomTitle.textContent = room.name;
+
+    const roomMembers = getRoomMembers(roomId, user);
+    const roomTasks = getRoomAllTasks(roomId, user);
+
+    const statusDiv = document.getElementById("status");
+    const currentActivity = nowTask(roomTasks);
+    statusDiv.innerHTML = `<strong>Current Time:</strong> ${new Date().toLocaleTimeString()} | <strong>Current Activity:</strong> ${esc(currentActivity)}`;
+    statusDiv.setAttribute("aria-live", "polite");
+
+    document.getElementById("kpis").innerHTML = `
+        <div class="kpi"><small>Room Tasks</small><strong>${roomTasks.length}</strong></div>
+        <div class="kpi"><small>Members</small><strong>${roomMembers.length}</strong></div>`;
+
+    const now = new Date();
+    const viewRaw = sessionStorage.getItem("LEISURELY_CAL_VIEW");
+    let viewYear = now.getFullYear();
+    let viewMonth = now.getMonth();
+    if (viewRaw) {
+        const [yy, mm] = viewRaw.split("-").map(Number);
+        if (Number.isInteger(yy) && Number.isInteger(mm) && mm >= 0 && mm <= 11) {
+            viewYear = yy;
+            viewMonth = mm;
+        }
+    }
+
+    const renderCalendar = () => {
+        document.getElementById("calendar").innerHTML = buildCalendar(roomTasks, viewYear, viewMonth);
+        document.getElementById("calendarTitle").textContent = `Calendar - ${monthNames[viewMonth]} ${viewYear}`;
+    };
+    renderCalendar();
+
+    const renderAi = () => {
+        const groupIdeas = aiIdeasGroup(roomMembers, roomTasks);
+        const shuffled = [...groupIdeas].sort(() => Math.random() - 0.5);
+        document.getElementById("aiList").innerHTML = shuffled
+            .map((x, idx) => `<li><span>${esc(x)}</span> <button type="button" class="action-btn add-ai-btn" data-ai-idx="${idx}">Add to Tasks</button></li>`)
+            .join("");
+        const aiButtons = document.querySelectorAll(".add-ai-btn");
+        aiButtons.forEach((btn) => {
+            btn.onclick = () => {
+                const index = Number(btn.dataset.aiIdx);
+                const pick = shuffled[index];
+                if (!pick) return;
+                const slot = nextFreeSlot(roomTasks);
+                user.tasks.push({
+                    id: uid(),
+                    title: suggestionToTaskTitle(pick),
+                    date: slot.date,
+                    start: slot.start,
+                    end: slot.end,
+                    roomId: roomId,
+                    status: "planned"
+                });
+                save();
+                window.location.reload();
+            };
+        });
+    };
+    renderAi();
+
+    const renderTasks = () => {
+        const rows = roomTasks.map((t) => {
+            const doneClass = t.status === "done" ? "task-done" : "";
+            return `<tr>
+                <td class="${doneClass}">${esc(t.title)}</td>
+                <td>${t.date}</td>
+                <td>${t.start}-${t.end}</td>
+                <td>${esc(t.owner)}</td>
+                <td>
+                    ${t.ownerEmail === user.email ? `<button type="button" class="action-btn edit-task-btn" data-task-id="${t.id}">Edit</button>
+                    <button type="button" class="action-btn toggle-done-btn" data-task-id="${t.id}">${t.status === "done" ? "Undo" : "Done"}</button>
+                    <button type="button" class="action-btn ghost delete-task-btn" data-task-id="${t.id}">Delete</button>` : '-'}
+                </td>
+            </tr>`;
+        }).join("");
+        document.getElementById("taskRows").innerHTML = rows || "<tr><td colspan='5'>No tasks yet.</td></tr>";
+    };
+    renderTasks();
+
+    document.querySelectorAll(".edit-task-btn").forEach((btn) => {
+        btn.onclick = () => {
+            openEditTaskModal(btn.dataset.taskId);
+        };
+    });
+
+    document.querySelectorAll(".toggle-done-btn").forEach((btn) => {
+        btn.onclick = () => {
+            const task = user.tasks.find((t) => t.id === btn.dataset.taskId);
+            if (!task) return;
+            task.status = task.status === "done" ? "planned" : "done";
+            save();
+            window.location.reload();
+        };
+    });
+
+    document.querySelectorAll(".delete-task-btn").forEach((btn) => {
+        btn.onclick = () => {
+            user.tasks = user.tasks.filter((t) => t.id !== btn.dataset.taskId);
+            save();
+            window.location.reload();
+        };
+    });
+
+    document.getElementById("prevMonthBtn").onclick = () => {
+        viewMonth -= 1;
+        if (viewMonth < 0) { viewMonth = 11; viewYear -= 1; }
+        renderCalendar();
+    };
+    document.getElementById("nextMonthBtn").onclick = () => {
+        viewMonth += 1;
+        if (viewMonth > 11) { viewMonth = 0; viewYear += 1; }
         renderCalendar();
     };
 
@@ -364,12 +714,32 @@ function wireDashboard() {
     document.getElementById("taskForm").onsubmit = (e) => {
         e.preventDefault();
         const d = new FormData(e.target);
-        user.tasks.push({ id: uid(), title: String(d.get("title")).trim(), date: String(d.get("date")), start: String(d.get("start")), end: String(d.get("end")), roomId: String(d.get("roomId")), status: "planned" });
+        user.tasks.push({ id: uid(), title: String(d.get("title")).trim(), date: String(d.get("date")), start: String(d.get("start")), end: String(d.get("end")), roomId: roomId, status: "planned" });
         save();
         taskModal.classList.add("hidden");
-        go("./dashboard.html");
+        window.location.reload();
     };
-    document.getElementById("roomOptions").innerHTML = `<option value="">Personal</option>${user.rooms.map((r) => `<option value="${r.id}">${esc(r.name)}</option>`).join("")}`;
+
+    document.getElementById("editTaskForm").onsubmit = (e) => {
+        e.preventDefault();
+        const d = new FormData(e.target);
+        const taskId = document.getElementById("editTaskId").value;
+        const task = user.tasks.find(t => t.id === taskId);
+        if (task) {
+            task.title = String(d.get("title")).trim();
+            task.date = String(d.get("date"));
+            task.start = String(d.get("start"));
+            task.end = String(d.get("end"));
+            save();
+            closeEditTaskModal();
+            window.location.reload();
+        }
+    };
+
+    document.getElementById("closeEditTaskModalBtn").onclick = closeEditTaskModal;
+    document.getElementById("editTaskModal").onclick = (e) => {
+        if (e.target.id === "editTaskModal") closeEditTaskModal();
+    };
 }
 
 function wireProfile() {
@@ -399,10 +769,10 @@ function wireProfile() {
             user.profile.photoUrl = await imageFileToOptimizedDataUrl(photoFile);
         }
         if (!saveSafe()) {
-            profileMsg.innerHTML = `<span class="danger">Could not save profile image. Try a smaller image file.</span>`;
+            profileMsg.innerHTML = `<span class="danger" role="alert">Could not save profile image. Try a smaller image file.</span>`;
             return;
         }
-        profileMsg.innerHTML = `<span class="ok">Profile updated.</span>`;
+        profileMsg.innerHTML = `<span class="ok" role="status">Profile updated.</span>`;
         go("./dashboard.html");
     };
 }
@@ -423,13 +793,60 @@ function wireSettings() {
     };
 }
 
+function generateRoomCode() {
+    return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
+function copyRoomCode(code, roomName) {
+    navigator.clipboard.writeText(code).then(() => {
+        alert(`Room code "${code}" copied to clipboard! Share it with friends to join "${roomName}".`);
+    }).catch(() => {
+        prompt("Copy this room code to share:", code);
+    });
+}
+
 function wireRooms() {
     requireAuth();
     const user = me();
     const friendList = document.getElementById("friendList");
     const roomList = document.getElementById("roomList");
+    const joinForm = document.getElementById("joinRoomForm");
+
     friendList.innerHTML = user.friends.map((f) => `<li class="mini-card">${esc(f)}</li>`).join("") || "<li class='mini-card'>No friends yet.</li>";
-    roomList.innerHTML = user.rooms.map((r) => `<li class="mini-card"><strong>${esc(r.name)}</strong><br /><small>${r.members.length} members</small></li>`).join("") || "<li class='mini-card'>No rooms yet.</li>";
+
+    roomList.innerHTML = user.rooms.map((r) => `
+        <li class="mini-card">
+            <div class="room-info">
+                <strong>${esc(r.name)}</strong><br />
+                <small>${r.members?.length || 1} members</small>
+            </div>
+            <div class="room-code-display">
+                <button type="button" class="action-btn copy-code-btn" data-room-id="${r.id}" aria-label="Copy room code">
+                    Copy Code
+                </button>
+            </div>
+            <button type="button" class="action-btn open-room-btn" data-room-id="${r.id}">
+                Open Room
+            </button>
+        </li>`).join("") || "<li class='mini-card'>No rooms yet.</li>";
+
+    document.querySelectorAll(".copy-code-btn").forEach((btn) => {
+        btn.onclick = () => {
+            const roomId = btn.dataset.roomId;
+            const room = user.rooms.find(r => r.id === roomId);
+            if (room) {
+                copyRoomCode(room.code || "NOCODE", room.name);
+            }
+        };
+    });
+
+    document.querySelectorAll(".open-room-btn").forEach((btn) => {
+        btn.onclick = () => {
+            const roomId = btn.dataset.roomId;
+            window.location.href = `./room.html?roomId=${roomId}`;
+        };
+    });
+
     document.getElementById("friendForm").onsubmit = (e) => {
         e.preventDefault();
         const email = String(new FormData(e.target).get("friendEmail")).trim().toLowerCase();
@@ -438,14 +855,44 @@ function wireRooms() {
         save();
         go("./rooms.html");
     };
+
     document.getElementById("roomForm").onsubmit = (e) => {
         e.preventDefault();
         const name = String(new FormData(e.target).get("roomName")).trim();
         if (!name) return;
-        user.rooms.push({ id: uid(), name, members: [user.email, ...user.friends] });
+        const roomCode = generateRoomCode();
+        user.rooms.push({ id: uid(), name, members: [user.email, ...user.friends], code: roomCode });
         save();
         go("./rooms.html");
     };
+
+    if (joinForm) {
+        joinForm.onsubmit = (e) => {
+            e.preventDefault();
+            const code = String(new FormData(e.target).get("joinCode")).trim().toUpperCase();
+            const roomToJoin = user.rooms.find(r => r.code === code);
+            if (roomToJoin) {
+                alert("You are already in this room!");
+                return;
+            }
+            const roomByCode = state.users
+                .flatMap(u => u.rooms || [])
+                .find(r => r.code === code);
+            if (!roomByCode) {
+                alert("Room not found. Check the code and try again.");
+                return;
+            }
+            const existingRoom = user.rooms.find(r => r.id === roomByCode.id);
+            if (existingRoom) {
+                alert("You are already in this room!");
+                return;
+            }
+            user.rooms.push({ id: roomByCode.id, name: roomByCode.name, members: roomByCode.members, code: roomByCode.code });
+            save();
+            alert("Successfully joined the room!");
+            go("./rooms.html");
+        };
+    }
 }
 
 function wireNav() {
@@ -459,6 +906,7 @@ if (page === "signup") wireSignup();
 if (page === "login") wireLogin();
 if (page === "forgot") wireForgotPassword();
 if (page === "dashboard") wireDashboard();
+if (page === "room") wireRoom();
 if (page === "profile") wireProfile();
 if (page === "settings") wireSettings();
 if (page === "rooms") wireRooms();
