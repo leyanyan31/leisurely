@@ -355,14 +355,10 @@ function wireDashboard() {
         roomSelector.onchange = (e) => {
             const selectedRoom = e.target.value;
             sessionStorage.setItem("LEISURELY_CURRENT_ROOM", selectedRoom);
-            if (selectedRoom && user.rooms.find(r => r.id === selectedRoom)) {
-                window.location.href = `./room.html?roomId=${selectedRoom}`;
-            } else {
-                window.location.href = "./dashboard.html";
-            }
+            window.location.reload(); // Stay on dashboard, just reload with new filter
         };
     }
-    const currentTasks = currentRoomId ? getRoomAllTasks(currentRoomId, user) : user.tasks;
+    const currentTasks = currentRoomId ? getRoomAllTasks(currentRoomId, user) : user.tasks.filter(t => !t.roomId);
     const currentActivity = nowTask(currentTasks);
     const timeDisplay = new Date().toLocaleTimeString();
 
