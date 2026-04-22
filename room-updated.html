@@ -66,6 +66,8 @@
                 <ul id="aiList" aria-label="Group AI generated suggestions"></ul>
             </section>
         </main>
+
+        <!-- Add Task Modal -->
         <div id="taskModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
             <div class="modal-card">
                 <div class="title-row">
@@ -88,6 +90,34 @@
                         </div>
                     </div>
                     <button type="submit">Save Task</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Task Modal -->
+        <div id="editTaskModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="editTaskModalTitle">
+            <div class="modal-card">
+                <div class="title-row">
+                    <h3 id="editTaskModalTitle">Edit Task</h3>
+                    <button id="closeEditTaskModalBtn" type="button" class="ghost" aria-label="Close modal">Close</button>
+                </div>
+                <form id="editTaskForm">
+                    <input type="hidden" id="editTaskId" name="taskId" />
+                    <label for="editTaskTitle">Task</label>
+                    <input required id="editTaskTitle" name="title" autocomplete="off" />
+                    <label for="editTaskDate">Date</label>
+                    <input required id="editTaskDate" type="date" name="date" />
+                    <div class="row">
+                        <div>
+                            <label for="editTaskStart">Start</label>
+                            <input required id="editTaskStart" type="time" name="start" />
+                        </div>
+                        <div>
+                            <label for="editTaskEnd">End</label>
+                            <input required id="editTaskEnd" type="time" name="end" />
+                        </div>
+                    </div>
+                    <button type="submit">Update Task</button>
                 </form>
             </div>
         </div>
