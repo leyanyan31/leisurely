@@ -890,7 +890,7 @@ function wireRooms() {
             user.rooms.push({ id: roomByCode.id, name: roomByCode.name, members: roomByCode.members, code: roomByCode.code });
             save();
             alert("Successfully joined the room!");
-            go("./rooms-v3.html");
+            go("./room-v3.html");
         };
     }
 }
