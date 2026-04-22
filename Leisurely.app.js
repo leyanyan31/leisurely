@@ -355,7 +355,7 @@ function wireDashboard() {
             const selectedRoom = e.target.value;
             sessionStorage.setItem("LEISURELY_CURRENT_ROOM", selectedRoom);
             if (selectedRoom && user.rooms.find(r => r.id === selectedRoom)) {
-                window.location.href = "./rooms.html";
+                window.location.href = `./room.html?roomId=${selectedRoom}`;
             } else {
                 window.location.href = "./dashboard.html";
             }
@@ -645,6 +645,16 @@ function wireRoom() {
     };
     renderAi();
 
+    // Render member list
+    const memberList = document.getElementById("memberList");
+    if (memberList) {
+        memberList.innerHTML = roomMembers.map(email => {
+            const memberUser = byEmail(email);
+            const name = memberUser?.profile?.displayName || email;
+            return `<li class="mini-card">${esc(name)}</li>`;
+        }).join("") || "<li class='mini-card'>No members yet.</li>";
+    }
+
     const renderTasks = () => {
         const rows = roomTasks.map((t) => {
             const doneClass = t.status === "done" ? "task-done" : "";
@@ -870,7 +880,7 @@ function wireRooms() {
     document.querySelectorAll(".open-room-btn").forEach((btn) => {
         btn.onclick = () => {
             const roomId = btn.dataset.roomId;
-            window.location.href = `./room-updated.html?roomId=${roomId}`;
+            window.location.href = `./room.html?roomId=${roomId}`;
         };
     });
 
