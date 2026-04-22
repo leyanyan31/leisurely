@@ -826,11 +826,8 @@ function copyRoomCode(code, roomName) {
 function wireRooms() {
     requireAuth();
     const user = me();
-    const friendList = document.getElementById("friendList");
     const roomList = document.getElementById("roomList");
     const joinForm = document.getElementById("joinRoomForm");
-
-    friendList.innerHTML = user.friends.map((f) => `<li class="mini-card">${esc(f)}</li>`).join("") || "<li class='mini-card'>No friends yet.</li>";
 
     roomList.innerHTML = user.rooms.map((r) => `
         <li class="mini-card">
@@ -879,11 +876,14 @@ function wireRooms() {
 
     document.getElementById("roomForm").onsubmit = (e) => {
         e.preventDefault();
-        const name = String(new FormData(e.target).get("roomName")).trim();
-        if (!name) return;
+        const form = e.target;
+        const nameInput = form.elements.roomName || form.querySelector('input[name="roomName"]');
+        const name = nameInput ? String(nameInput.value).trim() : "";
+        if (!name) { alert("Please enter a room name"); return; }
         const roomCode = generateRoomCode();
         user.rooms.push({ id: uid(), name, members: [user.email], code: roomCode });
         save();
+        alert("Room created! Code: " + roomCode);
         go("./rooms.html");
     };
 
