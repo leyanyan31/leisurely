@@ -344,6 +344,7 @@ function wireDashboard() {
     const currentRoom = user.rooms.find(r => r.id === currentRoomId);
 
     const statusDiv = document.getElementById("status");
+    const currentRoomId = sessionStorage.getItem("LEISURELY_CURRENT_ROOM") || "";
     const roomSelector = document.getElementById("roomSelector");
     if (roomSelector) {
         const roomOptions = [
@@ -361,7 +362,6 @@ function wireDashboard() {
             }
         };
     }
-
     const currentTasks = currentRoomId ? getRoomAllTasks(currentRoomId, user) : user.tasks;
     const currentActivity = nowTask(currentTasks);
     const timeDisplay = new Date().toLocaleTimeString();
