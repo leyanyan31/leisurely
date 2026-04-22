@@ -14,6 +14,13 @@
         </header>
         <section class="grid">
             <article class="card">
+                <h3>Join Room with Code</h3>
+                <form id="joinRoomForm" class="join-room-form">
+                    <input required name="joinCode" type="text" placeholder="Enter room code" pattern="[A-Za-z0-9]{6}" maxlength="6" aria-label="Room code" />
+                    <button type="submit">Join</button>
+                </form>
+            </article>
+            <article class="card">
                 <h3>Create Room</h3>
                 <form id="roomForm" class="row">
                     <input required name="roomName" placeholder="Study Group" />
