@@ -901,11 +901,12 @@ function wireRooms() {
                 alert("You are already in this room!");
                 return;
             }
-            const roomByCode = state.users
-                .flatMap(u => u.rooms || [])
-                .find(r => r.code === code);
+            const allRooms = state.users.flatMap(u => u.rooms || []);
+            console.log("Looking for code:", code);
+            console.log("All available room codes:", allRooms.map(r => r.code));
+            const roomByCode = allRooms.find(r => r.code === code);
             if (!roomByCode) {
-                alert("Room not found. Check the code and try again.");
+                alert("Room not found. Available codes: " + allRooms.map(r => r.code).join(", ") || "None");
                 return;
             }
             const existingRoom = user.rooms.find(r => r.id === roomByCode.id);
